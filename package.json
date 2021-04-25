@@ -1,0 +1,29 @@
+{
+    "name": "eslinq",
+    "version": "1.0.0",
+    "description": "LINQ for ES2018+",
+    "main": "lib/index.js",
+    "scripts": {
+        "test": "eslint .",
+        "build": "npm run-script generate-code && tsc -b src",
+        "generate-code": "cd codegen && ts-node index.ts && eslint ../src/queryable.ts --fix && eslint ../src/asyncQueryable.ts --fix"
+    },
+    "author": "Martin Chloride <i@martincl2.me>",
+    "keywords": [
+        "LINQ",
+        "iterator",
+        "iterable",
+        "stream",
+        "queryable",
+        "async"
+    ],
+    "license": "MIT",
+    "devDependencies": {
+        "@types/node": "^12.14.0",
+        "@typescript-eslint/eslint-plugin": "^4.22.0",
+        "@typescript-eslint/parser": "^4.22.0",
+        "eslint": "^7.25.0",
+        "typescript": "^4.2.4",
+        "ts-node": "^9.1.1"
+    }
+}

@@ -1,0 +1,27 @@
+{
+    "root": true,
+    "parser": "@typescript-eslint/parser",
+    "plugins": [
+        "@typescript-eslint"
+    ],
+    "extends": [
+        "eslint:recommended",
+        "plugin:@typescript-eslint/eslint-recommended",
+        "plugin:@typescript-eslint/recommended"
+    ],
+    "rules": {
+        "indent": [1, 4, {
+            "SwitchCase": 1
+        }],
+        "lines-between-class-members": [1, "always", {
+            "exceptAfterSingleLine": true
+        }],
+        "quotes": [1, "double"],
+        "require-yield": 0,
+        "semi": [1, "always"],
+        "sort-imports": [1, {
+            "ignoreDeclarationSort": true
+        }],
+        "@typescript-eslint/no-inferrable-types": 0
+    }
+}

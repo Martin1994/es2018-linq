@@ -1,0 +1,6 @@
+/.vscode
+/codegen
+/node_modules
+/template
+/.eslint*
+/.gitignore
