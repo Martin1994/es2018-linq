@@ -1,6 +1,9 @@
 {
     "root": true,
     "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+        "project": "./tsconfig.eslint.json"
+    },
     "plugins": [
         "@typescript-eslint"
     ],
@@ -22,6 +25,8 @@
         "sort-imports": [1, {
             "ignoreDeclarationSort": true
         }],
-        "@typescript-eslint/no-inferrable-types": 0
+        "@typescript-eslint/no-floating-promises": 2,
+        "@typescript-eslint/no-inferrable-types": 0,
+        "@typescript-eslint/no-unused-vars": 0 // Covered by TypeScript compiler
     }
 }

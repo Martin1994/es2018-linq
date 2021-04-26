@@ -1,4 +1,4 @@
-import { AsyncOrSyncIterable } from "./asyncQueryable";
+import { AsyncOrSync, AsyncOrSyncIterable } from "./asyncQueryable";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 class QueryableImplementationTemplate<T> {
@@ -9,11 +9,18 @@ class QueryableImplementationTemplate<T> {
         this.iterable = iterable;
     }
 
-    private async *select(selector: (element: T) => boolean): AsyncIterable<T> {
+    private async any(selector: (element: T) => AsyncOrSync<boolean>): Promise<boolean> {
         for await (const element of this.iterable) {
-            if (selector(element)) {
-                yield element;
+            if (await selector(element)) {
+                return true;
             }
+        }
+        return false;
+    }
+
+    private async *select<TResult>(selector: (element: T) => AsyncOrSync<TResult>): AsyncIterable<TResult> {
+        for await (const element of this.iterable) {
+            yield selector(element);
         }
     }
 
@@ -25,12 +32,11 @@ class QueryableImplementationTemplate<T> {
         }
     }
 
-    private async any(selector: (element: T) => boolean): Promise<boolean> {
+    private async *where(predicate: (element: T) => AsyncOrSync<boolean>): AsyncIterable<T> {
         for await (const element of this.iterable) {
-            if (selector(element)) {
-                return true;
+            if (await predicate(element)) {
+                yield element;
             }
         }
-        return false;
     }
 }

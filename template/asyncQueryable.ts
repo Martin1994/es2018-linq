@@ -1,3 +1,4 @@
+export type AsyncOrSync<T> = Promise<T> | T;
 export type AsyncOrSyncIterable<T> = AsyncIterable<T> | Iterable<T>;
 
 export class AsyncQueryable<T> implements AsyncIterable<T> {
@@ -13,7 +14,7 @@ export class AsyncQueryable<T> implements AsyncIterable<T> {
     }
 
     public async toArray(): Promise<T[]> {
-        const result = []; 
+        const result = [];
         for await (const element of this.iterable) {
             result.push(element);
         }

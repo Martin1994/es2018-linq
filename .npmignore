@@ -1,6 +1,14 @@
+# IDEs
 /.vscode
-/codegen
+
+# Infrastructures
 /node_modules
-/template
+/coverage
 /.eslint*
 /.gitignore
+/.npmignore
+
+# Build-time code
+/codegen
+/template
+/tests

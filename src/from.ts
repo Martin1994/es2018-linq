@@ -1,9 +1,9 @@
 import { AsyncOrSyncIterable, AsyncQueryable } from "./asyncQueryable";
 import { Queryable } from "./queryable";
 
-export function linq<T>(iterable: Iterable<T>): Queryable<T>;
-export function linq<T>(iterable: AsyncIterable<T>): AsyncQueryable<T>;
-export function linq<T>(iterable: AsyncOrSyncIterable<T>): Queryable<T> | AsyncQueryable<T> {
+export function from<T>(iterable: Iterable<T>): Queryable<T>;
+export function from<T>(iterable: AsyncIterable<T>): AsyncQueryable<T>;
+export function from<T>(iterable: AsyncOrSyncIterable<T>): Queryable<T> | AsyncQueryable<T> {
     if (isIterable(iterable)) {
         return new Queryable(iterable);
     }

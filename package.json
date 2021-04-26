@@ -2,12 +2,6 @@
     "name": "eslinq",
     "version": "1.0.0",
     "description": "LINQ for ES2018+",
-    "main": "lib/index.js",
-    "scripts": {
-        "test": "eslint .",
-        "build": "npm run-script generate-code && tsc -b src",
-        "generate-code": "cd codegen && ts-node index.ts && eslint ../src/queryable.ts --fix && eslint ../src/asyncQueryable.ts --fix"
-    },
     "author": "Martin Chloride <i@martincl2.me>",
     "keywords": [
         "LINQ",
@@ -17,13 +11,27 @@
         "queryable",
         "async"
     ],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/Martin1994/eslinq.git"
+    },
     "license": "MIT",
+    "main": "lib/index.js",
+    "scripts": {
+        "test": "jest && eslint .",
+        "build": "npm run-script generate-code && npm run-script format-generated-code && tsc -b src",
+        "generate-code": "cd codegen && ts-node index.ts",
+        "format-generated-code": "eslint ./src/queryable.ts --fix && eslint ./src/asyncQueryable.ts --fix"
+    },
     "devDependencies": {
+        "@types/jest": "^26.0.22",
         "@types/node": "^12.14.0",
         "@typescript-eslint/eslint-plugin": "^4.22.0",
         "@typescript-eslint/parser": "^4.22.0",
         "eslint": "^7.25.0",
-        "typescript": "^4.2.4",
-        "ts-node": "^9.1.1"
+        "jest": "^26.6.3",
+        "ts-jest": "^26.5.5",
+        "ts-node": "^9.1.1",
+        "typescript": "^4.2.4"
     }
 }

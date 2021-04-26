@@ -15,7 +15,7 @@ export class SynchronousImplementationGenerator extends ImplementationGenerator 
             implMethod.name,
             implMethod.questionToken,
             implMethod.typeParameters,
-            implMethod.parameters,
+            this.convertParameters(implMethod.parameters),
             implMethod.type.typeArguments[0],
             this.convertMethodBody(implMethod.body)
         );
@@ -66,6 +66,17 @@ export class SynchronousImplementationGenerator extends ImplementationGenerator 
                 }
             }
 
+            if (TypeScript.isTypeReferenceNode(node)) {
+                if (TypeScript.isIdentifier(node.typeName)) {
+                    if (node.typeName.text === "AsyncOrSync") {
+                        if (!node.typeArguments) {
+                            throw new Error("AsyncOrSync<T> must be used with a type argument.");
+                        }
+                        return node.typeArguments[0];
+                    }
+                }
+            }
+
             return TypeScript.visitEachChild(node, visitor, context);
         }
         return parameters.map(parameter => TypeScript.visitEachChild(parameter, visitor, context));
@@ -74,6 +85,7 @@ export class SynchronousImplementationGenerator extends ImplementationGenerator 
     private convertMethodBody(block: Block): Block {
         const context = this.context;
         function visitor(node: Node): Node {
+            // Remove await from for await
             if (TypeScript.isForOfStatement(node)) {
                 if (node.awaitModifier) {
                     return TypeScript.factory.createForOfStatement(
@@ -83,6 +95,11 @@ export class SynchronousImplementationGenerator extends ImplementationGenerator 
                         TypeScript.visitEachChild(node.statement, visitor, context)
                     );
                 }
+            }
+
+            // Remove await from await statements
+            if (TypeScript.isAwaitExpression(node)) {
+                return node.expression;
             }
 
             return TypeScript.visitEachChild(node, visitor, context);
