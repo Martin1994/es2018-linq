@@ -7,7 +7,6 @@ export interface TestCase {
     selector: (x: number) => Iterable<number>;
 }
 
-
 describe("LINQ", () => {
     describe.each<TestCase>([
         {

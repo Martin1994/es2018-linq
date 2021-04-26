@@ -1,0 +1,4 @@
+- Support method overriding
+- Support full aggregator signature set
+- Support Iterable<number> methods
+- Support async comparer for Distinct

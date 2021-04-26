@@ -4,11 +4,11 @@
 
 This library provides a set of functional programming APIs copied from [LINQ](https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/concepts/linq/) from the .NET world. These predefined functional programming APIs allows you to manipulate an [Iterable<T>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols) (available since ES2015) or an [AsyncIterable<T>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/asyncIterator) (available since ES2018) in an easy and maintainable shape.
 
-This library attempts to provide exact the same API defined in [Queryable](https://docs.microsoft.com/en-us/dotnet/api/system.linq.queryable) of .NET with TypeScript types. On top of that, its attempts to provide consistent API experience between synchronous and asynchronous operations by leveraging TypeScript code generation.
+This library attempts to provide exact the same API defined in [Enumerable](https://docs.microsoft.com/en-us/dotnet/api/system.linq.enumerable) of .NET with TypeScript types. On top of that, its attempts to provide consistent API experience between synchronous and asynchronous operations by leveraging TypeScript code generation.
 
 ## Usage
 
-Since this library is a ES2018 port of LINQ from .NET, please refer to [System.Linq.Queryable API documentation](https://docs.microsoft.com/en-us/dotnet/api/system.linq.queryable) as a detailed API reference.
+Since this library is a ES2018 port of LINQ from .NET, please refer to [System.Linq.Enumerable API documentation](https://docs.microsoft.com/en-us/dotnet/api/system.linq.enumerable) as a detailed API reference.
 
 ### Starting using LINQ
 
@@ -29,26 +29,26 @@ console.log(
 
 ```javascript
 const myIterable = ["some", "value"];
-const queryable = from(myIterable);
+const enumerable = from(myIterable);
 
 async function* myAsyncGenerator() {
     yield await asyncOperationA();
     yield await asyncOperationB();
 }
-const asyncQueryable = from(myAsyncGenerator());
+const asyncEnumerable = from(myAsyncGenerator());
 ```
 
 ### Iterate with a LINQ object
 
 ```javascript
 const myInput = [0, 1, 2, 3];
-const queryable = from(myInput).where(x => x % 2 === 0);
-for (const x of queryable) {
+const enumerable = from(myInput).where(x => x % 2 === 0);
+for (const x of enumerable) {
     console.log(x);
 }
 // Output: 0, 2
 
-console.log(queryable.toArray());
+console.log(enumerable.toArray());
 // Output: [0, 2]
 ```
 
@@ -58,21 +58,21 @@ console.log(queryable.toArray());
 async function* asyncGenerator() {
     yield* [0, 1, 2, 3];
 }
-const asyncQueryable = from(asyncGenerator());
+const asyncEnumerable = from(asyncGenerator());
 
 // It accepts both synchronous and asynchronous functions
-console.log(await asyncQueryable.any(x => x === 2)); // Output: true
-console.log(await asyncQueryable.any(x => Promise.resolve(x === 2))); // Output: true
+console.log(await asyncEnumerable.any(x => x === 2)); // Output: true
+console.log(await asyncEnumerable.any(x => Promise.resolve(x === 2))); // Output: true
 ```
 
 ### Convert a synchronous LINQ object to asynchronous
 
 ```javascript
-const queryable = from(["John", "Smith"]);
-const asyncQueryable = queryable.asAsync();
+const enumerable = from(["John", "Smith"]);
+const asyncEnumerable = enumerable.asAsync();
 
 // Then it accepts asynchronous functions
-const allPresent = await asyncQueryable.all(async x => await queryPresentAsync(x));
+const allPresent = await asyncEnumerable.all(async x => await queryPresentAsync(x));
 ```
 
 ## Development guide
@@ -91,7 +91,7 @@ npm test
 
 - `codegen` directory contains the source code for code generation.
 - `template` directory contains the template code for code generation.
-    - `asyncQueryable.ts` and `queryable.ts` are the empty template classes. Their content will be copied as is.
+    - `asyncEnumerable.ts` and `enumerable.ts` are the empty template classes. Their content will be copied as is.
     - `implementationTemplate.ts` contains implementation methods. Each of the implementation method will be added into the above two classes. Contents other than the implementation methods is not used in code generation.
 - `src` directory contains source code, including both generated and non-generated ones.
 - `lib` directory contains compiled code, type definitions and source maps.
@@ -107,7 +107,7 @@ For example, a template implementation method, its generated asynchronous method
 
 ```typescript
 // Template implementation template class
-class QueryableImplementationTemplate<T> {
+class EnumerableImplementationTemplate<T> {
     private async *where(predicate: (element: T) => AsyncOrSync<boolean>): AsyncIterable<T> {
         for await (const element of this.iterable) {
             if (await predicate(element)) {
@@ -118,10 +118,10 @@ class QueryableImplementationTemplate<T> {
 }
 
 // Generated asynchronous class
-class AsyncQueryable<T> {
+class AsyncEnumerable<T> {
     // A wrapper method will be generated
-    public const(predicate: (element: T) => AsyncOrSync<boolean>): AsyncQueryable<T> {
-        return new AsyncQueryable(this.constImpl(predicate));
+    public const(predicate: (element: T) => AsyncOrSync<boolean>): AsyncEnumerable<T> {
+        return new AsyncEnumerable(this.constImpl(predicate));
     }
 
     // The template method will have a prefix "Impl" in its name
@@ -136,11 +136,11 @@ class AsyncQueryable<T> {
 }
 
 // Generated synchronous class
-class Queryable<T> {
+class Enumerable<T> {
     // A wrapper method will be generated
     // Asynchronous types will be removed from its signature or turned into its synchronous alternative
-    public const(predicate: (element: T) => boolean): Queryable<T> {
-        return new Queryable(this.constImpl(predicate));
+    public const(predicate: (element: T) => boolean): Enumerable<T> {
+        return new Enumerable(this.constImpl(predicate));
     }
 
     // The template method will have a prefix "Impl" in its name

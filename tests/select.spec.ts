@@ -7,7 +7,6 @@ export interface TestCase {
     selector: (x: number) => string;
 }
 
-
 describe("LINQ", () => {
     describe.each<TestCase>([
         {

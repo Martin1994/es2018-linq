@@ -1,14 +1,14 @@
-import { AsyncOrSyncIterable, AsyncQueryable } from "./asyncQueryable";
-import { Queryable } from "./queryable";
+import { AsyncEnumerable, AsyncOrSyncIterable } from "./asyncEnumerable";
+import { Enumerable } from "./enumerable";
 
-export function from<T>(iterable: Iterable<T>): Queryable<T>;
-export function from<T>(iterable: AsyncIterable<T>): AsyncQueryable<T>;
-export function from<T>(iterable: AsyncOrSyncIterable<T>): Queryable<T> | AsyncQueryable<T> {
+export function from<T>(iterable: Iterable<T>): Enumerable<T>;
+export function from<T>(iterable: AsyncIterable<T>): AsyncEnumerable<T>;
+export function from<T>(iterable: AsyncOrSyncIterable<T>): Enumerable<T> | AsyncEnumerable<T> {
     if (isIterable(iterable)) {
-        return new Queryable(iterable);
+        return new Enumerable(iterable);
     }
 
-    return new AsyncQueryable(iterable);
+    return new AsyncEnumerable(iterable);
 }
 
 function isIterable<T>(iterable: AsyncOrSyncIterable<T>): iterable is Iterable<T> {

@@ -20,12 +20,12 @@ function main() {
     const implClass = readClass(program, "implementationTemplate.ts");
 
     const generatedSyncSource = TypeScript.transform(
-        readSource(program, "queryable.ts"),
+        readSource(program, "enumerable.ts"),
         [context => source => new SynchronousImplementationGenerator(source, implClass, context).generate()]
     ).transformed[0];
 
     const generatedAsyncSource = TypeScript.transform(
-        readSource(program, "asyncQueryable.ts"),
+        readSource(program, "asyncEnumerable.ts"),
         [context => source => new AsynchronousImplementationGenerator(source, implClass, context).generate()]
     ).transformed[0];
 
@@ -103,6 +103,4 @@ function print(...sources: SourceFile[]): void {
     }
 }
 
-console.log("Generating source code from template...");
 main();
-console.log("Successfully generated source code.");

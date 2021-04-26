@@ -7,7 +7,6 @@ export interface TestCase {
     predicate: (x: number) => boolean;
 }
 
-
 describe("LINQ", () => {
     describe.each<TestCase>([
         {

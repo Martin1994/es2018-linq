@@ -1,6 +1,9 @@
-import { AsyncQueryable } from "./asyncQueryable";
+import { AsyncEnumerable } from "./asyncEnumerable";
 
-export class Queryable<T> implements Iterable<T> {
+export class Enumerable<T> implements Iterable<T> {
+
+    private static readonly EMPTY_ENUMERABLE = new Enumerable<any>([]);
+
     public readonly iterable: Iterable<T>;
 
     public constructor(iterable: Iterable<T>) {
@@ -15,13 +18,17 @@ export class Queryable<T> implements Iterable<T> {
         return [...this.iterable];
     }
 
-    public asAsync(): AsyncQueryable<T> {
-        return new AsyncQueryable(this.asAsyncImpl());
+    public asAsync(): AsyncEnumerable<T> {
+        return new AsyncEnumerable(this.asAsyncImpl());
     }
 
     private async *asAsyncImpl(): AsyncIterable<T> {
         for (const element of this.iterable) {
             yield element;
         }
+    }
+
+    public static empty<T>(): Enumerable<T> {
+        return Enumerable.EMPTY_ENUMERABLE;
     }
 }

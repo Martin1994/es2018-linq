@@ -1,6 +1,6 @@
 /.vscode
 /node_modules
-/src/asyncQueryable.ts
-/src/queryable.ts
+/src/asyncEnumerable.ts
+/src/enumerable.ts
 /lib
 /coverage

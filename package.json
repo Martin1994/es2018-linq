@@ -8,7 +8,7 @@
         "iterator",
         "iterable",
         "stream",
-        "queryable",
+        "enumerable",
         "async"
     ],
     "repository": {
@@ -21,7 +21,7 @@
         "test": "jest && eslint .",
         "build": "npm run-script generate-code && npm run-script format-generated-code && tsc -b src",
         "generate-code": "cd codegen && ts-node index.ts",
-        "format-generated-code": "eslint ./src/queryable.ts --fix && eslint ./src/asyncQueryable.ts --fix"
+        "format-generated-code": "eslint ./src/enumerable.ts --fix && eslint ./src/asyncEnumerable.ts --fix"
     },
     "devDependencies": {
         "@types/jest": "^26.0.22",

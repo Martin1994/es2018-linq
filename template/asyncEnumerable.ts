@@ -1,7 +1,13 @@
 export type AsyncOrSync<T> = Promise<T> | T;
 export type AsyncOrSyncIterable<T> = AsyncIterable<T> | Iterable<T>;
 
-export class AsyncQueryable<T> implements AsyncIterable<T> {
+async function* emptyGenerator() {
+    // Yield nothing
+}
+
+export class AsyncEnumerable<T> implements AsyncIterable<T> {
+
+    private static readonly EMPTY_ENUMERABLE = new AsyncEnumerable<any>(emptyGenerator());
 
     public readonly iterable: AsyncIterable<T>;
 
@@ -19,5 +25,9 @@ export class AsyncQueryable<T> implements AsyncIterable<T> {
             result.push(element);
         }
         return result;
+    }
+
+    public static empty<T>(): AsyncEnumerable<T> {
+        return AsyncEnumerable.EMPTY_ENUMERABLE;
     }
 }
