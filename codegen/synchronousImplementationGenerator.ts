@@ -102,6 +102,21 @@ export class SynchronousImplementationGenerator extends ImplementationGenerator 
                 return node.expression;
             }
 
+            // Convert Symbol.asyncIterator to Symbol.iterator
+            if (TypeScript.isPropertyAccessExpression(node)) {
+                if (TypeScript.isIdentifier(node.expression)) {
+                    if (node.expression.text === "Symbol") {
+                        if (node.name.text === "asyncIterator") {
+                            return TypeScript.factory.updatePropertyAccessExpression(
+                                node,
+                                node.expression,
+                                TypeScript.factory.createIdentifier("iterator")
+                            );
+                        }
+                    }
+                }
+            }
+
             return TypeScript.visitEachChild(node, visitor, context);
         }
         return TypeScript.visitEachChild(block, visitor, context);

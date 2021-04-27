@@ -4,13 +4,13 @@ export interface TestCase {
     name: string;
     input: Iterable<number>;
     output: Iterable<number>;
-    selector: (x: number) => Iterable<number>;
+    selector: (x: number, i: number) => Iterable<number>;
 }
 
 describe("LINQ", () => {
     describe.each<TestCase>([
         {
-            name: "should filter the iterable with elements satisfying specified criteria",
+            name: "should map and flatten the iterable without index",
             input: [0, 1, 2, 3],
             output: [1, 2, 2, 3, 3, 3],
             selector: function* (x) {
@@ -18,6 +18,22 @@ describe("LINQ", () => {
                     yield x;
                 }
             }
+        },
+        {
+            name: "should map and flatten the iterable without index",
+            input: [0, 1, 2, 3],
+            output: [-1, 2, 2, -3, -3, -3],
+            selector: function* (x, i) {
+                for (let j = 0; j < x; j++) {
+                    yield x * ((i % 2) - 0.5) * -2;
+                }
+            }
+        },
+        {
+            name: "should work with empty iterables",
+            input: [],
+            output: [],
+            selector: _ => [1, 1, 1]
         }
     ])("SelectMany", ({name, input, output, selector}) => {
         it(`${name} synchronously`, () => {
@@ -29,8 +45,8 @@ describe("LINQ", () => {
         });
 
         it(`${name} asynchronously with asynchronous selector`, async () => {
-            expect(await from(input).asAsync().selectMany(async function* (x) {
-                yield* selector(x);
+            expect(await from(input).asAsync().selectMany(async function* (x, i) {
+                yield* selector(x, i);
             }).toArray()).toEqual(output);
         });
     });

@@ -1,4 +1,10 @@
-- Support method overriding
-- Support full aggregator signature set
+- Support method overriding (Zip really needs to be guarded)
+- Support full Aggregate signature set
 - Support Iterable<number> methods
-- Support async comparer for Distinct
+    - Average, Max, Min, Sum
+- Support async comparer for Distinct, OrderBy, OrderByDescending
+- Support set operations
+    - Except, Intersect, Union
+- Support GroupBy, GroupJoin, Join
+- Support ThenBy, ThenByDescending (chain-able?)
+- More validation and exceptions

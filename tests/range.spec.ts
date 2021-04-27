@@ -1,0 +1,28 @@
+import { AsyncEnumerable, Enumerable } from "../src";
+
+export interface TestCase {
+    name: string;
+    input: Iterable<number>;
+    output: boolean;
+    predicate?: (x: number) => boolean;
+}
+
+describe("LINQ", () => {
+    describe("Range", () => {
+        it("should generate a synchronous iterator with given range", () => {
+            expect(Enumerable.range(2, 3).toArray()).toEqual([2, 3, 4]);
+        });
+
+        it("should generate an asynchronous iterator with given range", async () => {
+            expect(await AsyncEnumerable.range(2, 3).toArray()).toEqual([2, 3, 4]);
+        });
+
+        it("should generate an empty synchronous iterator with empty range", () => {
+            expect(Enumerable.range(2, 0).toArray()).toEqual([]);
+        });
+
+        it("should generate an empty asynchronous iterator with empty range", async () => {
+            expect(await AsyncEnumerable.range(2, 0).toArray()).toEqual([]);
+        });
+    });
+});

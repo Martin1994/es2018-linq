@@ -6,6 +6,8 @@ This library provides a set of functional programming APIs copied from [LINQ](ht
 
 This library attempts to provide exact the same API defined in [Enumerable](https://docs.microsoft.com/en-us/dotnet/api/system.linq.enumerable) of .NET with TypeScript types. On top of that, its attempts to provide consistent API experience between synchronous and asynchronous operations by leveraging TypeScript code generation.
 
+There are still some missing or slightly different APIs from this port comparing to the original .NET implementation. That is either because some nature difference between JavaScript and .NET (such as lack of `default<T>`), or to avoid complicated method overriding. If you find missing methods or overriding signatures which do not land into any of those reasons, they will be supported in a future version of this library some day.
+
 ## Usage
 
 Since this library is a ES2018 port of LINQ from .NET, please refer to [System.Linq.Enumerable API documentation](https://docs.microsoft.com/en-us/dotnet/api/system.linq.enumerable) as a detailed API reference.
@@ -13,7 +15,7 @@ Since this library is a ES2018 port of LINQ from .NET, please refer to [System.L
 ### Starting using LINQ
 
 ```javascript
-import { from } from "es-linq";
+import { from } from "es-linq"; // Note: note published to NPM yet!
 
 console.log(
     from([-1, 0, 1, 2])

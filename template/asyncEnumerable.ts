@@ -30,4 +30,20 @@ export class AsyncEnumerable<T> implements AsyncIterable<T> {
     public static empty<T>(): AsyncEnumerable<T> {
         return AsyncEnumerable.EMPTY_ENUMERABLE;
     }
+
+    public static range(start: number, count: number): AsyncEnumerable<number> {
+        return new AsyncEnumerable(async function* (): AsyncIterable<number> {
+            for (let i = 0; i < count; i++) {
+                yield start + i;
+            }
+        }());
+    }
+
+    public static repeat<T>(element: T, count: number): AsyncEnumerable<T> {
+        return new AsyncEnumerable(async function* (): AsyncIterable<T> {
+            for (let i = 0; i < count; i++) {
+                yield element;
+            }
+        }());
+    }
 }

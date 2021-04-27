@@ -31,4 +31,20 @@ export class Enumerable<T> implements Iterable<T> {
     public static empty<T>(): Enumerable<T> {
         return Enumerable.EMPTY_ENUMERABLE;
     }
+
+    public static range(start: number, count: number): Enumerable<number> {
+        return new Enumerable(function* (): Iterable<number> {
+            for (let i = 0; i < count; i++) {
+                yield start + i;
+            }
+        }());
+    }
+
+    public static repeat<T>(element: T, count: number): Enumerable<T> {
+        return new Enumerable(function* (): Iterable<T> {
+            for (let i = 0; i < count; i++) {
+                yield element;
+            }
+        }());
+    }
 }
