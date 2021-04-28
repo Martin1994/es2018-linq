@@ -2,11 +2,11 @@
 
 ## Abstract
 
-This library provides a set of functional programming APIs copied from [LINQ](https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/concepts/linq/) from the .NET world. These predefined functional programming APIs allows you to manipulate an [Iterable<T>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols) (available since ES2015) or an [AsyncIterable<T>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/asyncIterator) (available since ES2018) in an easy and maintainable shape.
+This library provides a set of functional programming APIs with deferred execution, copied from [LINQ](https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/concepts/linq/) from the .NET world. These predefined functional programming APIs allows you to manipulate an [Iterable<T>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols) (available since ES2015) or an [AsyncIterable<T>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/asyncIterator) (available since ES2018) in an easy and maintainable shape.
 
 This library attempts to provide exact the same API defined in [Enumerable](https://docs.microsoft.com/en-us/dotnet/api/system.linq.enumerable) of .NET with TypeScript types. On top of that, its attempts to provide consistent API experience between synchronous and asynchronous operations by leveraging TypeScript code generation.
 
-There are still some missing or slightly different APIs from this port comparing to the original .NET implementation. That is either because some nature difference between JavaScript and .NET (such as lack of `default<T>`), or to avoid complicated method overriding. If you find missing methods or overriding signatures which do not land into any of those reasons, they will be supported in a future version of this library some day.
+There are still some missing or slightly different APIs from this port comparing to the original .NET implementation. That is either because some nature difference between JavaScript and .NET (such as lack of `default(T)`), or to avoid complicated method overloading. If you find missing methods or overloading signatures which do not land into any of those reasons, they will be supported in a future version of this library some day.
 
 ## Usage
 
@@ -52,6 +52,21 @@ for (const x of enumerable) {
 
 console.log(enumerable.toArray());
 // Output: [0, 2]
+```
+
+### Executions are deferred as much as possible
+```javascript
+function* generator() {
+    yield 0;
+    yield 1;
+    throw new Error();
+}
+
+// Execution will stop when no further element is needed
+const hasOne = from(generator()).any(x => x === 1); // Will return. Won't throw
+
+// However some operation cannot defer any execution
+const hasOneFromDistinctElements = from(generator()).distinct().any(); // Won't return. Will throw
 ```
 
 ### Work with an asynchronous iterable

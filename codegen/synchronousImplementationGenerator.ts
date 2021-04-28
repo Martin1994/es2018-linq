@@ -117,6 +117,19 @@ export class SynchronousImplementationGenerator extends ImplementationGenerator 
                 }
             }
 
+            // Convert AsyncIterable<T> to Iterable<T>
+            if (TypeScript.isTypeReferenceNode(node)) {
+                if (TypeScript.isIdentifier(node.typeName)) {
+                    if (node.typeName.text === "AsyncIterable") {
+                        return TypeScript.factory.updateTypeReferenceNode(
+                            node,
+                            TypeScript.factory.createIdentifier("Iterable"),
+                            node.typeArguments
+                        );
+                    }
+                }
+            }
+
             return TypeScript.visitEachChild(node, visitor, context);
         }
         return TypeScript.visitEachChild(block, visitor, context);

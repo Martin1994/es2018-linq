@@ -19,7 +19,7 @@
     "main": "lib/index.js",
     "scripts": {
         "test": "jest && eslint .",
-        "build": "npm run-script generate-code && npm run-script format-generated-code && tsc -b src",
+        "build": "npm run-script generate-code && npm run-script format-generated-code && tsc -p src",
         "generate-code": "cd codegen && ts-node index.ts",
         "format-generated-code": "eslint ./src/enumerable.ts --fix && eslint ./src/asyncEnumerable.ts --fix"
     },

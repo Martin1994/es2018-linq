@@ -6,5 +6,5 @@
         "outDir": "../lib", /* Redirect output structure to the directory. */
     },
     "extends": "../tsconfig.json",
-    "exclude": []
+    "include": ["**/*"]
 }

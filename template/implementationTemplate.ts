@@ -50,6 +50,21 @@ class EnumerableImplementationTemplate<T> {
         yield element;
     }
 
+    private async average(DO_NOT_ASSIGN: T extends number ? void : never): Promise<number> {
+        let sum = 0;
+        let count = 0;
+        for await (const element of this.iterable as any as AsyncIterable<number>) {
+            sum += element;
+            count++;
+        }
+
+        if (count === 0) {
+            throw new Error("Source contains no elements.");
+        }
+
+        return sum / count;
+    }
+
     private async *concat(secondHalf: AsyncOrSyncIterable<T>): AsyncIterable<T> {
         yield* this.iterable;
         yield* secondHalf;
@@ -144,6 +159,40 @@ class EnumerableImplementationTemplate<T> {
             }
         }
         return last;
+    }
+
+    private async max(DO_NOT_ASSIGN: T extends number ? void : never): Promise<number> {
+        const generator = (this.iterable as any as AsyncIterable<number>)[Symbol.asyncIterator]();
+
+        let next = await generator.next();
+        if (next.done) {
+            throw new Error("Source contains no elements.");
+        }
+        let max = next.value;
+
+        while (!(next = await generator.next()).done) {
+            if (next.value > max) {
+                max = next.value;
+            }
+        }
+        return max;
+    }
+
+    private async min(DO_NOT_ASSIGN: T extends number ? void : never): Promise<number> {
+        const generator = (this.iterable as any as AsyncIterable<number>)[Symbol.asyncIterator]();
+
+        let next = await generator.next();
+        if (next.done) {
+            throw new Error("Source contains no elements.");
+        }
+        let min = next.value;
+
+        while (!(next = await generator.next()).done) {
+            if (next.value < min) {
+                min = next.value;
+            }
+        }
+        return min;
     }
 
     private async *orderBy<TKey>(keySelector: (element: T) => TKey, comparer?: (lhs: TKey, rhs: TKey) => number): AsyncIterable<T> {
@@ -303,6 +352,14 @@ class EnumerableImplementationTemplate<T> {
 
             yield element;
         }
+    }
+
+    private async sum(DO_NOT_ASSIGN: T extends number ? void : never): Promise<number> {
+        let sum = 0;
+        for await (const element of this.iterable as any as AsyncIterable<number>) {
+            sum += element;
+        }
+        return sum;
     }
 
     private async *take(count: number): AsyncIterable<T> {

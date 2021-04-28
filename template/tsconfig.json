@@ -3,5 +3,5 @@
         "noEmit": true
     },
     "extends": "../tsconfig.json",
-    "exclude": []
+    "include": ["**/*"]
 }

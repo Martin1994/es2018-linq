@@ -88,24 +88,4 @@ describe("LINQ", () => {
             });
         }
     });
-
-    describe("All", () => {
-        it("should iterate every element before the first occurrence but not iterate any element after it", () => {
-            const fetched: number[] = [];
-            function *generator() {
-                for (let i = 0; i < 10; i++) {
-                    fetched.push(i);
-                    yield i;
-                }
-            }
-            expect(from(generator()).all(x => x < 5)).toBeFalsy();
-            for (let i = 0; i < 10; i++) {
-                if (i < 5) {
-                    expect(fetched).toContain(i);
-                } else if (i > 5) {
-                    expect(fetched).not.toContain(i);
-                }
-            }
-        });
-    });
 });
