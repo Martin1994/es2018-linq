@@ -92,6 +92,16 @@ const asyncEnumerable = enumerable.asAsync();
 const allPresent = await asyncEnumerable.all(async x => await queryPresentAsync(x));
 ```
 
+### Static type check for specialized methods
+
+```typescript
+// Calling sum on a number iterable without any issue
+from([0, 1, 2]).sum();
+
+// However cannot call sum on a string iterable
+from(["string", "iterable"]).sum(); // Type error. Won't compile.
+```
+
 ## Development guide
 
 ### Get started

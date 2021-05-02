@@ -109,17 +109,13 @@ class EnumerableImplementationTemplate<T> {
         }
     }
 
-    private async *distinct(comparer?: (lhs: T, rhs: T) => number): AsyncIterable<T> {
-        if (comparer) {
-            const sorted = (await this.toArray()).sort(comparer);
-
-            for (let i = 0; i < sorted.length; i++) {
-                if (i === 0  || comparer(sorted[i - 1], sorted[i]) !== 0) {
-                    yield sorted[i];
-                }
+    private async *distinct(): AsyncIterable<T> {
+        const appeared =  new Set<T>();
+        for await (const element of this.iterable) {
+            if (!appeared.has(element)) {
+                yield element;
+                appeared.add(element);
             }
-        } else {
-            yield* new Set(await this.toArray());
         }
     }
 
@@ -134,6 +130,20 @@ class EnumerableImplementationTemplate<T> {
         return undefined;
     }
 
+    private async *except(that: AsyncOrSyncIterable<T>): AsyncIterable<T> {
+        const thisSet = new Set<T>();
+        const thatSet = new Set<T>();
+        for await (const thatElement of that) {
+            thatSet.add(thatElement);
+        }
+        for await (const thisElement of this.iterable) {
+            if (!thisSet.has(thisElement) && !thatSet.has(thisElement)) {
+                yield thisElement;
+                thisSet.add(thisElement);
+            }
+        }
+    }
+
     private async first(predicate?: (element: T) => AsyncOrSync<boolean>): Promise<T | undefined> {
         if (!predicate) {
             predicate = _ => true;
@@ -145,6 +155,20 @@ class EnumerableImplementationTemplate<T> {
             }
         }
         return undefined;
+    }
+
+    private async *intersect(that: AsyncOrSyncIterable<T>): AsyncIterable<T> {
+        const thisSet = new Set<T>();
+        const thatSet = new Set<T>();
+        for await (const thatElement of that) {
+            thatSet.add(thatElement);
+        }
+        for await (const thisElement of this.iterable) {
+            if (!thisSet.has(thisElement) && thatSet.has(thisElement)) {
+                yield thisElement;
+                thisSet.add(thisElement);
+            }
+        }
     }
 
     private async last(predicate?: (element: T) => AsyncOrSync<boolean>): Promise<T | undefined> {
@@ -428,6 +452,22 @@ class EnumerableImplementationTemplate<T> {
         }
 
         return result;
+    }
+
+    private async *union(that: AsyncOrSyncIterable<T>): AsyncIterable<T> {
+        const thisSet = new Set<T>();
+        const thatSet = new Set<T>();
+        for await (const thatElement of that) {
+            thatSet.add(thatElement);
+        }
+        for await (const thisElement of this.iterable) {
+            if (!thisSet.has(thisElement)) {
+                yield thisElement;
+                thisSet.add(thisElement);
+            }
+            thatSet.delete(thisElement);
+        }
+        yield* thatSet;
     }
 
     private async *where(predicate: (element: T) => AsyncOrSync<boolean>): AsyncIterable<T> {

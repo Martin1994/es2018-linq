@@ -1,10 +1,11 @@
-- Support method overriding (Zip really needs to be guarded)
-- Support full Aggregate signature set
-- Support async comparer for Distinct, OrderBy, OrderByDescending
-- Support set operations
-    - Except, Intersect, Union
+P0
 - Support GroupBy, GroupJoin, Join
-- Support ThenBy, ThenByDescending
-    - Chainable?
-    - Override methods like Select, Take for SortedEnumerable so that they return SortedEnumerable too?
+- Support ThenBy, ThenByDescending, chain-able
+- Support method overriding (Zip really needs to be guarded)
+
+P1
+- Optimization for SortedEnumerable
 - More validation and exceptions
+- Support full Aggregate signature set
+- Support comparer for set operations
+- Support async comparer for set operations and order operations
