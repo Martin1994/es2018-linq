@@ -1,5 +1,5 @@
-import { AsyncEnumerable, AsyncOrSync, AsyncOrSyncIterable } from "./asyncEnumerable";
-import { Enumerable } from "./enumerable";
+import { AsyncOrSync, AsyncOrSyncIterable } from "./asyncEnumerable";
+import { Enumerable, Grouping } from "./enumerable";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 class EnumerableImplementationTemplate<T> {
@@ -158,10 +158,40 @@ class EnumerableImplementationTemplate<T> {
         return undefined;
     }
 
+    private async *groupBy<TKey, TElement = T, TResult = Grouping<TKey, TElement>>(
+        keySelector: (element: T) => AsyncOrSync<TKey>,
+        elementSelector?: (element: T) => AsyncOrSync<TElement>,
+        resultSelector?: (key: TKey, results: Iterable<TElement>) => AsyncOrSync<TResult>
+    ): AsyncIterable<TResult> {
+        if (!elementSelector) {
+            elementSelector = element => element as any; // Should only be used when TElement is not given
+        }
+
+        if (!resultSelector) {
+            resultSelector = (key, results) => new Grouping(key, results) as any; // Should only be used when TResult is not given
+        }
+
+        const groupMap = new Map<TKey, TElement[]>();
+        for await (const element of this.iterable) {
+            const key = await keySelector(element);
+            let list = groupMap.get(key);
+            if (!list) {
+                list = [];
+                groupMap.set(key, list);
+            }
+
+            list.push(await elementSelector(element));
+        }
+
+        for (const [key, results] of groupMap) {
+            yield resultSelector(key, results);
+        }
+    }
+
     private async *groupJoin<TInner, TKey, TResult>(
         inner: AsyncOrSyncIterable<TInner>,
-        outerKeySelector: (element: T) => TKey,
-        innerKeySelector: (element: TInner) => TKey,
+        outerKeySelector: (element: T) => AsyncOrSync<TKey>,
+        innerKeySelector: (element: TInner) => AsyncOrSync<TKey>,
         resultSelector: (outerElement: T, innerElements: Iterable<TInner>) => AsyncOrSync<TResult>
     ): AsyncIterable<TResult> {
         const innerMap = new Map<TKey, TInner[]>();
@@ -199,8 +229,8 @@ class EnumerableImplementationTemplate<T> {
 
     private async *join<TInner, TKey, TResult>(
         inner: AsyncOrSyncIterable<TInner>,
-        outerKeySelector: (element: T) => TKey,
-        innerKeySelector: (element: TInner) => TKey,
+        outerKeySelector: (element: T) => AsyncOrSync<TKey>,
+        innerKeySelector: (element: TInner) => AsyncOrSync<TKey>,
         resultSelector: (outerElement: T, innerElement: TInner) => AsyncOrSync<TResult>
     ): AsyncIterable<TResult> {
         const innerMap = new Map<TKey, TInner[]>();

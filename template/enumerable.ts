@@ -52,3 +52,12 @@ export class Enumerable<T> implements Iterable<T> {
         }());
     }
 }
+
+export class Grouping<TKey, TElement> extends Enumerable<TElement> {
+    public readonly key: TKey;
+
+    public constructor(key: TKey, iterable: Iterable<TElement>) {
+        super(iterable);
+        this.key = key;
+    }
+}

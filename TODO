@@ -1,7 +1,7 @@
 P0
 - Support GroupBy
 - Support ThenBy, ThenByDescending, chain-able
-- Support method overriding (Zip really needs to be guarded)
+- Support method overriding (GroupBy and Zip really needs to be guarded)
 
 P1
 - Optimization for SortedEnumerable

@@ -34,6 +34,9 @@ export abstract class ImplementationGenerator {
             if (!node.name) {
                 throw new Error("Template class must have a name.");
             }
+            if (!node.name.text.endsWith("Enumerable")) {
+                return node;
+            }
             this.className = node.name.text;
             return TypeScript.factory.updateClassDeclaration(
                 node,
