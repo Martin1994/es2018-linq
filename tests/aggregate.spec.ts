@@ -1,11 +1,11 @@
 import { from } from "../src";
 
-export interface TestCase {
-    name: string;
-    input: Iterable<number>;
-    output: string;
-    seed: string;
-    func: (accumulate: string, x: number) => string;
+interface TestCase {
+    readonly name: string;
+    readonly input: Iterable<number>;
+    readonly output: string;
+    readonly seed: string;
+    readonly func: (accumulate: string, x: number) => string;
 }
 
 describe("LINQ", () => {

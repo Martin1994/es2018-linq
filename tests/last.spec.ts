@@ -1,10 +1,10 @@
 import { from } from "../src";
 
-export interface TestCase {
-    name: string;
-    input: Iterable<number>;
-    output: number | undefined;
-    predicate?: (x: number) => boolean;
+interface TestCase {
+    readonly name: string;
+    readonly input: Iterable<number>;
+    readonly output: number | undefined;
+    readonly predicate?: (x: number) => boolean;
 }
 
 describe("LINQ", () => {

@@ -1,10 +1,10 @@
 import { from } from "../src";
 
-export interface TestCase {
-    name: string;
-    input: number[];
-    output: number[];
-    count: number;
+interface TestCase {
+    readonly name: string;
+    readonly input: number[];
+    readonly output: number[];
+    readonly count: number;
 }
 
 describe("LINQ", () => {

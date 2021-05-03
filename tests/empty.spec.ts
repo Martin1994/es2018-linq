@@ -1,10 +1,10 @@
 import { AsyncEnumerable, Enumerable } from "../src";
 
-export interface TestCase {
-    name: string;
-    input: Iterable<number>;
-    output: boolean;
-    predicate?: (x: number) => boolean;
+interface TestCase {
+    readonly name: string;
+    readonly input: Iterable<number>;
+    readonly output: boolean;
+    readonly predicate?: (x: number) => boolean;
 }
 
 describe("LINQ", () => {

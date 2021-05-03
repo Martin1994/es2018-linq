@@ -1,11 +1,11 @@
 import { from } from "../src";
 
-export interface TestCase {
-    name: string;
-    input: Iterable<number>;
-    output: Iterable<any>;
-    that: Iterable<number>;
-    resultSelector?: (x: number, y: number) => any
+interface TestCase {
+    readonly name: string;
+    readonly input: Iterable<number>;
+    readonly output: Iterable<any>;
+    readonly that: Iterable<number>;
+    readonly resultSelector?: (x: number, y: number) => any
 }
 
 describe("LINQ", () => {

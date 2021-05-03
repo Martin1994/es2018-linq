@@ -1,10 +1,10 @@
 import { from } from "../src";
 
-export interface TestCase {
-    name: string;
-    input: number[];
-    output: number[];
-    predicate: (x: number, i: number) => boolean;
+interface TestCase {
+    readonly name: string;
+    readonly input: number[];
+    readonly output: number[];
+    readonly predicate: (x: number, i: number) => boolean;
 }
 
 describe("LINQ", () => {

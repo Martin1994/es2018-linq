@@ -1,9 +1,9 @@
 import { from } from "../src";
 
-export interface TestCase {
-    name: string;
-    input: Iterable<number>;
-    output: Iterable<number>;
+interface TestCase {
+    readonly name: string;
+    readonly input: Iterable<number>;
+    readonly output: Iterable<number>;
 }
 
 describe("LINQ", () => {
