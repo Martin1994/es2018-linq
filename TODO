@@ -1,5 +1,5 @@
 P0
-- Support GroupBy, GroupJoin, Join
+- Support GroupBy
 - Support ThenBy, ThenByDescending, chain-able
 - Support method overriding (Zip really needs to be guarded)
 

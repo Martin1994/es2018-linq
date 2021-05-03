@@ -1,3 +1,5 @@
+import { Enumerable } from "./enumerable";
+
 export type AsyncOrSync<T> = Promise<T> | T;
 export type AsyncOrSyncIterable<T> = AsyncIterable<T> | Iterable<T>;
 

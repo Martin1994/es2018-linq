@@ -1,8 +1,12 @@
 import { AsyncEnumerable } from "./asyncEnumerable";
 
+function* emptyGenerator() {
+    // Yield nothing
+}
+
 export class Enumerable<T> implements Iterable<T> {
 
-    private static readonly EMPTY_ENUMERABLE = new Enumerable<any>([]);
+    private static readonly EMPTY_ENUMERABLE = new Enumerable<any>(emptyGenerator());
 
     public readonly iterable: Iterable<T>;
 
