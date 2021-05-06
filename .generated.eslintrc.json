@@ -1,0 +1,17 @@
+{
+    "extends": [
+        "./.eslintrc.json"
+    ],
+    "rules": {
+        "lines-between-class-members": [1, "always", {
+            "exceptAfterSingleLine": false
+        }],
+        "padding-line-between-statements": [1,
+            { "blankLine": "always", "prev": "import", "next": "export" },
+            { "blankLine": "always", "prev": "import", "next": "function" },
+            { "blankLine": "always", "prev": "function", "next": "export" },
+            { "blankLine": "always", "prev": "export", "next": "function" },
+            { "blankLine": "always", "prev": "export", "next": "export" }
+        ]
+    }
+}

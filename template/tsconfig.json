@@ -4,7 +4,8 @@
         "rootDirs": [
             ".",
             "../src"
-        ]
+        ],
+        "experimentalDecorators": true
     },
     "extends": "../tsconfig.json",
     "include": ["**/*"]

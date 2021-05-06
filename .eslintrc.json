@@ -13,6 +13,7 @@
         "plugin:@typescript-eslint/recommended"
     ],
     "rules": {
+        "brace-style": [1, "1tbs"],
         "indent": [1, 4, {
             "SwitchCase": 1
         }],

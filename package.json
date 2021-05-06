@@ -18,10 +18,10 @@
     "license": "MIT",
     "main": "lib/index.js",
     "scripts": {
-        "test": "jest && eslint .",
+        "test": "jest && eslint --max-warnings=0 .",
         "build": "npm run-script generate-code && npm run-script format-generated-code && tsc -p src",
         "generate-code": "cd codegen && ts-node index.ts",
-        "format-generated-code": "eslint ./src/enumerable.ts --fix && eslint ./src/asyncEnumerable.ts --fix"
+        "format-generated-code": "eslint --config=.generated.eslintrc.json --fix ./src/enumerable.ts && eslint --config=.generated.eslintrc.json --fix ./src/asyncEnumerable.ts"
     },
     "devDependencies": {
         "@types/jest": "^26.0.22",

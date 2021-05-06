@@ -1,5 +1,4 @@
-import { from } from "../src";
-import { Grouping } from "../src/enumerable";
+import { Grouping, from } from "../src";
 
 class Pet {
     public readonly name: string;

@@ -1,58 +1,79 @@
 import * as TypeScript from "typescript";
 import { GeneratableMethodDeclaration, ImplementationGenerator } from "./implementationGenerator";
-import { Block, MethodDeclaration, Node, ParameterDeclaration, SyntaxKind } from "typescript";
+import { Block, GetAccessorDeclaration, MethodDeclaration, Node, ParameterDeclaration, SyntaxKind, TypeNode } from "typescript";
 
 export class SynchronousImplementationGenerator extends ImplementationGenerator {
-    protected *generateAggregateMethod(implMethod: GeneratableMethodDeclaration): Iterable<MethodDeclaration> {
-        if (!implMethod.type.typeArguments) {
-            throw new Error(`Implementation method ${implMethod.name.text}() must return a Promise with a type argument.`);
+    /**
+     * @override
+     */
+    protected *generateGetter(implMethod: GetAccessorDeclaration, className: string): Iterable<GetAccessorDeclaration> {
+        if (!implMethod.body) {
+            throw new Error("Accessor must have a body.");
         }
 
-        yield TypeScript.factory.createMethodDeclaration(
-            implMethod.decorators,
-            [TypeScript.factory.createModifier(SyntaxKind.PublicKeyword)],
+        yield TypeScript.factory.createGetAccessorDeclaration(
             undefined,
+            implMethod.modifiers?.filter(modifier => modifier.kind !== SyntaxKind.AsyncKeyword),
             implMethod.name,
-            implMethod.questionToken,
-            implMethod.typeParameters,
             this.convertParameters(implMethod.parameters),
-            implMethod.type.typeArguments[0],
+            this.convertReturnType(implMethod.type),
             this.convertMethodBody(implMethod.body)
         );
     }
 
-    protected *generateStreamMethod(implMethod: GeneratableMethodDeclaration): Iterable<MethodDeclaration> {
+    /**
+     * @override
+     */
+    protected *generateMethod(implMethod: GeneratableMethodDeclaration, className: string): Iterable<MethodDeclaration> {
+        if (!implMethod.type.typeArguments) {
+            throw new Error(`Implementation method ${this.getPrintableMethodName(implMethod)}() must return a Promise with a type argument.`);
+        }
+
+        yield TypeScript.factory.createMethodDeclaration(
+            undefined,
+            implMethod.modifiers.filter(modifier => modifier.kind !== SyntaxKind.AsyncKeyword),
+            implMethod.asteriskToken,
+            implMethod.name,
+            implMethod.questionToken,
+            implMethod.typeParameters,
+            this.convertParameters(implMethod.parameters),
+            this.convertReturnType(implMethod.type),
+            this.convertMethodBody(implMethod.body)
+        );
+    }
+
+    /**
+     * @override
+     */
+    protected *generateMethodWithWrapper(implMethod: GeneratableMethodDeclaration, className: string): Iterable<MethodDeclaration> {
         const parameters = this.convertParameters(implMethod.parameters);
 
         // Wrapper method
         yield TypeScript.factory.createMethodDeclaration(
             undefined,
-            [TypeScript.factory.createModifier(SyntaxKind.PublicKeyword)],
+            implMethod.modifiers.filter(modifier => modifier.kind !== SyntaxKind.AsyncKeyword),
             undefined,
             implMethod.name,
             undefined,
             implMethod.typeParameters,
             parameters,
             TypeScript.factory.createTypeReferenceNode(
-                this.className,
+                className,
                 implMethod.type.typeArguments
             ),
-            this.generateWrapperBody(implMethod)
+            this.generateWrapperBody(implMethod, className)
         );
 
         // Implementation method
         yield TypeScript.factory.createMethodDeclaration(
-            implMethod.decorators,
-            implMethod.modifiers?.filter(modifier => modifier.kind !== SyntaxKind.AsyncKeyword),
+            undefined,
+            this.makeModifiersPrivate(implMethod.modifiers?.filter(modifier => modifier.kind !== SyntaxKind.AsyncKeyword)),
             implMethod.asteriskToken,
-            TypeScript.factory.createIdentifier(implMethod.name.text + SynchronousImplementationGenerator.IMPL_METHOD_SUFFIX),
+            TypeScript.factory.createIdentifier(this.getImplMethodName(implMethod)),
             implMethod.questionToken,
             implMethod.typeParameters,
             parameters,
-            TypeScript.factory.createTypeReferenceNode(
-                "Iterable",
-                implMethod.type.typeArguments
-            ),
+            this.convertReturnType(implMethod.type),
             this.convertMethodBody(implMethod.body)
         );
     }
@@ -80,6 +101,41 @@ export class SynchronousImplementationGenerator extends ImplementationGenerator 
             return TypeScript.visitEachChild(node, visitor, context);
         }
         return parameters.map(parameter => TypeScript.visitEachChild(parameter, visitor, context));
+    }
+
+    private convertReturnType(type: TypeNode | undefined): TypeScript.TypeNode | undefined {
+        if (!type || !TypeScript.isTypeReferenceNode(type) || !TypeScript.isIdentifier(type.typeName)) {
+            throw new Error("Accessor must declare return type with identifier.");
+        }
+        switch (type.typeName.text) {
+            case "Promise":
+                if (!type.typeArguments) {
+                    throw new Error("Promise muse be used with a type argument.");
+                }
+                return type.typeArguments[0];
+
+            case "AsyncIterable":
+                return TypeScript.factory.updateTypeReferenceNode(
+                    type,
+                    TypeScript.factory.createIdentifier("Iterable"),
+                    type.typeArguments
+                );
+
+            case "AsyncIterator":
+                return TypeScript.factory.updateTypeReferenceNode(
+                    type,
+                    TypeScript.factory.createIdentifier("Iterator"),
+                    type.typeArguments
+                );
+
+            case "AsyncSortedEnumerable":
+                return TypeScript.factory.updateTypeReferenceNode(
+                    type,
+                    TypeScript.factory.createIdentifier("SortedEnumerable"),
+                    type.typeArguments
+                );
+        }
+        throw new Error(`Unknown return type ${type.typeName.text}`);
     }
 
     private convertMethodBody(block: Block): Block {
@@ -117,16 +173,15 @@ export class SynchronousImplementationGenerator extends ImplementationGenerator 
                 }
             }
 
-            // Convert AsyncIterable<T> to Iterable<T>
-            if (TypeScript.isTypeReferenceNode(node)) {
-                if (TypeScript.isIdentifier(node.typeName)) {
-                    if (node.typeName.text === "AsyncIterable") {
-                        return TypeScript.factory.updateTypeReferenceNode(
-                            node,
-                            TypeScript.factory.createIdentifier("Iterable"),
-                            node.typeArguments
-                        );
-                    }
+            if (TypeScript.isIdentifier(node)) {
+                // Convert AsyncIterable<T> to Iterable<T>
+                if (node.text === "AsyncIterable") {
+                    return TypeScript.factory.createIdentifier("Iterable");
+                }
+
+                // Convert AsyncSortedEnumerable<T> to SortedEnumerable<T>
+                if (node.text === "AsyncSortedEnumerable") {
+                    return TypeScript.factory.createIdentifier("SortedEnumerable");
                 }
             }
 
@@ -135,16 +190,16 @@ export class SynchronousImplementationGenerator extends ImplementationGenerator 
         return TypeScript.visitEachChild(block, visitor, context);
     }
 
-    private generateWrapperBody(implMethod: GeneratableMethodDeclaration): TypeScript.Block {
+    private generateWrapperBody(implMethod: GeneratableMethodDeclaration, className: string): TypeScript.Block {
         const iterableResultExpression = TypeScript.factory.createCallExpression(
             TypeScript.factory.createPropertyAccessExpression(
                 TypeScript.factory.createThis(),
-                implMethod.name.text + SynchronousImplementationGenerator.IMPL_METHOD_SUFFIX
+                this.getImplMethodName(implMethod)
             ),
             undefined,
             implMethod.parameters.map(parameter => {
                 if (!TypeScript.isIdentifier(parameter.name)) {
-                    throw new Error(`Implementation method ${implMethod.name.text}() must use identifiers as parameter names.`);
+                    throw new Error(`Implementation method ${this.getPrintableMethodName(implMethod)}() must use identifiers as parameter names.`);
                 }
                 return TypeScript.factory.createIdentifier(parameter.name.text);
             })
@@ -153,7 +208,7 @@ export class SynchronousImplementationGenerator extends ImplementationGenerator 
         return TypeScript.factory.createBlock([
             TypeScript.factory.createReturnStatement(
                 TypeScript.factory.createNewExpression(
-                    TypeScript.factory.createIdentifier(this.className),
+                    TypeScript.factory.createIdentifier(className),
                     undefined,
                     [iterableResultExpression]
                 )

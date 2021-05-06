@@ -1,13 +1,30 @@
 import * as TypeScript from "typescript";
 import { GeneratableMethodDeclaration, ImplementationGenerator } from "./implementationGenerator";
-import { MethodDeclaration, SyntaxKind } from "typescript";
+import { GetAccessorDeclaration, MethodDeclaration, SyntaxKind } from "typescript";
 
 export class AsynchronousImplementationGenerator extends ImplementationGenerator {
-    protected *generateAggregateMethod(implMethod: GeneratableMethodDeclaration): Iterable<MethodDeclaration> {
-        yield TypeScript.factory.createMethodDeclaration(
-            implMethod.decorators,
-            [TypeScript.factory.createModifier(SyntaxKind.PublicKeyword), TypeScript.factory.createModifier(SyntaxKind.AsyncKeyword)],
+    /**
+     * @override
+     */
+    protected *generateGetter(implMethod: GetAccessorDeclaration, className: string): Iterable<GetAccessorDeclaration> {
+        yield TypeScript.factory.createGetAccessorDeclaration(
             undefined,
+            implMethod.modifiers,
+            implMethod.name,
+            implMethod.parameters,
+            implMethod.type,
+            implMethod.body
+        );
+    }
+
+    /**
+     * @override
+     */
+    protected *generateMethod(implMethod: GeneratableMethodDeclaration, className: string): Iterable<MethodDeclaration> {
+        yield TypeScript.factory.createMethodDeclaration(
+            undefined,
+            implMethod.modifiers,
+            implMethod.asteriskToken,
             implMethod.name,
             implMethod.questionToken,
             implMethod.typeParameters,
@@ -17,29 +34,36 @@ export class AsynchronousImplementationGenerator extends ImplementationGenerator
         );
     }
 
-    protected *generateStreamMethod(implMethod: GeneratableMethodDeclaration): Iterable<MethodDeclaration> {
+    /**
+     * @override
+     */
+    protected *generateMethodWithWrapper(implMethod: GeneratableMethodDeclaration, className: string): Iterable<MethodDeclaration> {
+        if (!TypeScript.isIdentifier(implMethod.name)) {
+            throw new Error("Method with wrapper must use identifer as method name.");
+        }
+
         // Wrapper method
         yield TypeScript.factory.createMethodDeclaration(
             undefined,
-            [TypeScript.factory.createModifier(SyntaxKind.PublicKeyword)],
+            implMethod.modifiers.filter(modifier => modifier.kind !== SyntaxKind.AsyncKeyword),
             undefined,
             implMethod.name,
             undefined,
             implMethod.typeParameters,
             implMethod.parameters,
             TypeScript.factory.createTypeReferenceNode(
-                this.className,
+                className,
                 implMethod.type.typeArguments
             ),
-            this.generateWrapperBody(implMethod)
+            this.generateWrapperBody(implMethod, className)
         );
 
         // Implementation method
         yield TypeScript.factory.createMethodDeclaration(
-            implMethod.decorators,
-            implMethod.modifiers,
+            undefined,
+            this.makeModifiersPrivate(implMethod.modifiers),
             implMethod.asteriskToken,
-            TypeScript.factory.createIdentifier(implMethod.name.text + AsynchronousImplementationGenerator.IMPL_METHOD_SUFFIX),
+            TypeScript.factory.createIdentifier(this.getImplMethodName(implMethod)),
             implMethod.questionToken,
             implMethod.typeParameters,
             implMethod.parameters,
@@ -48,16 +72,16 @@ export class AsynchronousImplementationGenerator extends ImplementationGenerator
         );
     }
 
-    private generateWrapperBody(implMethod: GeneratableMethodDeclaration): TypeScript.Block {
+    private generateWrapperBody(implMethod: GeneratableMethodDeclaration, className: string): TypeScript.Block {
         const iterableResultExpression = TypeScript.factory.createCallExpression(
             TypeScript.factory.createPropertyAccessExpression(
                 TypeScript.factory.createThis(),
-                implMethod.name.text + AsynchronousImplementationGenerator.IMPL_METHOD_SUFFIX
+                this.getImplMethodName(implMethod)
             ),
             undefined,
             implMethod.parameters.map(parameter => {
                 if (!TypeScript.isIdentifier(parameter.name)) {
-                    throw new Error(`Implementation method ${implMethod.name.text}() must use identifiers as parameter names.`);
+                    throw new Error(`Implementation method ${this.getPrintableMethodName(implMethod)}() must use identifiers as parameter names.`);
                 }
                 return TypeScript.factory.createIdentifier(parameter.name.text);
             })
@@ -66,7 +90,7 @@ export class AsynchronousImplementationGenerator extends ImplementationGenerator
         return TypeScript.factory.createBlock([
             TypeScript.factory.createReturnStatement(
                 TypeScript.factory.createNewExpression(
-                    TypeScript.factory.createIdentifier(this.className),
+                    TypeScript.factory.createIdentifier(className),
                     undefined,
                     [iterableResultExpression]
                 )

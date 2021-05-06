@@ -11,13 +11,20 @@ export class AsyncEnumerable<T> implements AsyncIterable<T> {
 
     private static readonly EMPTY_ENUMERABLE = new AsyncEnumerable<any>(emptyGenerator());
 
-    public readonly iterable: AsyncIterable<T>;
+    protected readonly originalIterable: AsyncIterable<T>;
 
-    public constructor(iterable: AsyncIterable<T>) {
-        this.iterable = iterable;
+    /**
+     * @virtual
+     */
+    protected get iterable(): AsyncIterable<T> {
+        return this.originalIterable;
     }
 
-    [Symbol.asyncIterator](): AsyncIterator<T> {
+    public constructor(iterable: AsyncIterable<T>) {
+        this.originalIterable = iterable;
+    }
+
+    public [Symbol.asyncIterator](): AsyncIterator<T> {
         return this.iterable[Symbol.asyncIterator]();
     }
 
@@ -47,5 +54,14 @@ export class AsyncEnumerable<T> implements AsyncIterable<T> {
                 yield element;
             }
         }());
+    }
+}
+
+export class AsyncSortedEnumerable<T> extends AsyncEnumerable<T> {
+    public readonly comparer: (lhs: T, rhs: T) => AsyncOrSync<number>;
+
+    public constructor(iterable: AsyncIterable<T>, comparer: (lhs: T, rhs: T) => number) {
+        super(iterable);
+        this.comparer = comparer;
     }
 }

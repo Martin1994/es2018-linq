@@ -17,16 +17,16 @@ const GENERATED_HEADER = `/**************************************
 function main() {
     const program = readProgram(TEMPLATE_SOURCE_BASE);
 
-    const implClass = readClass(program, "implementationTemplate.ts");
+    const implClasses = readClasses(program, "implementationTemplate.ts");
 
     const generatedSyncSource = TypeScript.transform(
         readSource(program, "enumerable.ts"),
-        [context => source => new SynchronousImplementationGenerator(source, implClass, context).generate()]
+        [context => source => new SynchronousImplementationGenerator(source, implClasses, context).generate()]
     ).transformed[0];
 
     const generatedAsyncSource = TypeScript.transform(
         readSource(program, "asyncEnumerable.ts"),
-        [context => source => new AsynchronousImplementationGenerator(source, implClass, context).generate()]
+        [context => source => new AsynchronousImplementationGenerator(source, implClasses, context).generate()]
     ).transformed[0];
 
     print(generatedSyncSource, generatedAsyncSource);
@@ -64,35 +64,27 @@ function readSource(program: Program, sourceFile: string): SourceFile {
     return source;
 }
 
-function readClass(program: Program, sourceFile: string): ClassDeclaration {
+function readClasses(program: Program, sourceFile: string): Map<string, ClassDeclaration> {
     const source = readSource(program, sourceFile);
+    const classes = new Map<string, ClassDeclaration>();
 
-    function readClassFromNode(node: Node): ClassDeclaration | undefined {
-        if (TypeScript.isImportDeclaration(node)) {
-            return undefined;
-        }
-
-        for (const child of node.getChildren()) {
-            if (child.kind === SyntaxKind.ClassDeclaration) {
-                return child as ClassDeclaration;
+    function readClassesFromNode(node: Node): void {
+        if (TypeScript.isClassDeclaration(node)) {
+            if (!node.name) {
+                throw new Error("Template file should not contain anonymous classes.");
             }
 
-            const classNode = readClassFromNode(child);
-            if (classNode) {
-                return classNode;
-            }
+            classes.set(node.name.text, node);
+
+            return;
         }
 
-        return undefined;
+        node.forEachChild(readClassesFromNode);
     }
 
-    const classNode = readClassFromNode(source);
+    const classNode = readClassesFromNode(source);
 
-    if (classNode) {
-        return classNode;
-    }
-
-    throw new Error(`No class found in ${source.fileName}.`);
+    return classes;
 }
 
 function print(...sources: SourceFile[]): void {

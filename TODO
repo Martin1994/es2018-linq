@@ -1,11 +1,11 @@
 P0
-- Support GroupBy
 - Support ThenBy, ThenByDescending, chain-able
 - Support method overriding (GroupBy and Zip really needs to be guarded)
 
 P1
+- Generate code with JSDoc
 - Optimization for SortedEnumerable
 - More validation and exceptions
-- Support full Aggregate signature set
+- Support full Aggregate, GroupBy signature set
 - Support comparer for set operations
 - Support async comparer for set operations and order operations

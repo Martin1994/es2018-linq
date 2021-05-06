@@ -8,13 +8,20 @@ export class Enumerable<T> implements Iterable<T> {
 
     private static readonly EMPTY_ENUMERABLE = new Enumerable<any>(emptyGenerator());
 
-    public readonly iterable: Iterable<T>;
+    protected readonly originalIterable: Iterable<T>;
 
-    public constructor(iterable: Iterable<T>) {
-        this.iterable = iterable;
+    /**
+     * @virtual
+     */
+    protected get iterable(): Iterable<T> {
+        return this.originalIterable;
     }
 
-    [Symbol.iterator](): Iterator<T> {
+    public constructor(iterable: Iterable<T>) {
+        this.originalIterable = iterable;
+    }
+
+    public [Symbol.iterator](): Iterator<T> {
         return this.iterable[Symbol.iterator]();
     }
 
@@ -59,5 +66,14 @@ export class Grouping<TKey, TElement> extends Enumerable<TElement> {
     public constructor(key: TKey, iterable: Iterable<TElement>) {
         super(iterable);
         this.key = key;
+    }
+}
+
+export class SortedEnumerable<T> extends Enumerable<T> {
+    public readonly comparer: (lhs: T, rhs: T) => number;
+
+    public constructor(iterable: Iterable<T>, comparer: (lhs: T, rhs: T) => number) {
+        super(iterable);
+        this.comparer = comparer;
     }
 }
