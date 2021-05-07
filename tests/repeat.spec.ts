@@ -1,12 +1,5 @@
 import { AsyncEnumerable, Enumerable } from "../src";
 
-interface TestCase {
-    readonly name: string;
-    readonly input: Iterable<number>;
-    readonly output: boolean;
-    readonly predicate?: (x: number) => boolean;
-}
-
 describe("LINQ", () => {
     describe("Repeat", () => {
         it("should generate a synchronous iterator with given count", () => {

@@ -1,7 +1,7 @@
 import * as TypeScript from "typescript";
 import * as fs from "fs";
 import * as path from "path";
-import { ClassDeclaration, Node, Program, SourceFile, SyntaxKind } from "typescript";
+import { ClassDeclaration, Node, Program, SourceFile } from "typescript";
 import { AsynchronousImplementationGenerator } from "./asynchronousImplementationGenerator";
 import { SynchronousImplementationGenerator } from "./synchronousImplementationGenerator";
 
@@ -82,7 +82,7 @@ function readClasses(program: Program, sourceFile: string): Map<string, ClassDec
         node.forEachChild(readClassesFromNode);
     }
 
-    const classNode = readClassesFromNode(source);
+    readClassesFromNode(source);
 
     return classes;
 }
