@@ -21,7 +21,7 @@
         "test": "jest && eslint --max-warnings=0 .",
         "build": "npm run-script generate-code && npm run-script format-generated-code && tsc -p src",
         "generate-code": "cd codegen && ts-node index.ts",
-        "format-generated-code": "eslint --config=.generated.eslintrc.json --fix ./src/enumerable.ts && eslint --config=.generated.eslintrc.json --fix ./src/asyncEnumerable.ts"
+        "format-generated-code": "eslint --config=.eslintrc.generated.json --fix ./src/enumerable.ts && eslint --config=.eslintrc.generated.json --fix ./src/asyncEnumerable.ts"
     },
     "devDependencies": {
         "@types/jest": "^26.0.22",

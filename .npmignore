@@ -7,8 +7,13 @@
 /.eslint*
 /.gitignore
 /.npmignore
+/jest.config.js
+/tsconfig.eslint.json
 
 # Build-time code
 /codegen
 /template
 /tests
+
+# Misc
+/TODO
