@@ -57,10 +57,10 @@ export class AsyncEnumerable<T> implements AsyncIterable<T> {
     }
 }
 
-export class AsyncSortedEnumerable<T> extends AsyncEnumerable<T> {
+export class AsyncOrderedEnumerable<T> extends AsyncEnumerable<T> {
     public readonly comparer: (lhs: T, rhs: T) => AsyncOrSync<number>;
 
-    public constructor(iterable: AsyncIterable<T>, comparer: (lhs: T, rhs: T) => number) {
+    public constructor(iterable: AsyncIterable<T>, comparer: (lhs: T, rhs: T) => AsyncOrSync<number>) {
         super(iterable);
         this.comparer = comparer;
     }

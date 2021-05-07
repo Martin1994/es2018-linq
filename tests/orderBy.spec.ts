@@ -53,7 +53,7 @@ describe("LINQ", () => {
             input: randomize(Enumerable.range(0, 1024).toArray()),
             output: Enumerable.range(0, 1024).toArray(),
             keySelector: x => x as any
-        },
+        }
     ];
 
     describe.each<TestCase>(testCases)("OrderBy", ({name, input, output, keySelector, comparer}) => {

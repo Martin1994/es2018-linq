@@ -1,9 +1,10 @@
 P0
-- Support ThenBy, ThenByDescending, chain-able
 - Support method overriding (GroupBy and Zip really needs to be guarded)
 
 P1
+- Support method extension
 - Generate code with JSDoc
+    - Performance warning for OrderBy with AsyncEnumerable and synchronous comparer
 - Optimization for SortedEnumerable
 - More validation and exceptions
 - Support full Aggregate, GroupBy signature set

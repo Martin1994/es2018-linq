@@ -69,7 +69,7 @@ export class Grouping<TKey, TElement> extends Enumerable<TElement> {
     }
 }
 
-export class SortedEnumerable<T> extends Enumerable<T> {
+export class OrderedEnumerable<T> extends Enumerable<T> {
     public readonly comparer: (lhs: T, rhs: T) => number;
 
     public constructor(iterable: Iterable<T>, comparer: (lhs: T, rhs: T) => number) {

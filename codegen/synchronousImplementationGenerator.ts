@@ -128,10 +128,10 @@ export class SynchronousImplementationGenerator extends ImplementationGenerator 
                     type.typeArguments
                 );
 
-            case "AsyncSortedEnumerable":
+            case "AsyncOrderedEnumerable":
                 return TypeScript.factory.updateTypeReferenceNode(
                     type,
-                    TypeScript.factory.createIdentifier("SortedEnumerable"),
+                    TypeScript.factory.createIdentifier("OrderedEnumerable"),
                     type.typeArguments
                 );
         }
@@ -179,10 +179,23 @@ export class SynchronousImplementationGenerator extends ImplementationGenerator 
                     return TypeScript.factory.createIdentifier("Iterable");
                 }
 
-                // Convert AsyncSortedEnumerable<T> to SortedEnumerable<T>
-                if (node.text === "AsyncSortedEnumerable") {
-                    return TypeScript.factory.createIdentifier("SortedEnumerable");
+                // Convert AsyncOrderedEnumerable<T> to OrderedEnumerable<T>
+                if (node.text === "AsyncOrderedEnumerable") {
+                    return TypeScript.factory.createIdentifier("OrderedEnumerable");
                 }
+            }
+
+            // Remove async from Lambda functions
+            if (TypeScript.isArrowFunction(node)) {
+                return TypeScript.factory.updateArrowFunction(
+                    node,
+                    node.modifiers?.filter(modifier => modifier.kind !== SyntaxKind.AsyncKeyword),
+                    node.typeParameters,
+                    node.parameters,
+                    node.type,
+                    node.equalsGreaterThanToken,
+                    TypeScript.visitEachChild(node.body, visitor, context)
+                );
             }
 
             return TypeScript.visitEachChild(node, visitor, context);

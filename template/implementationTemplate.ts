@@ -1,4 +1,4 @@
-import { AsyncEnumerable, AsyncOrSync, AsyncOrSyncIterable, AsyncSortedEnumerable } from "./asyncEnumerable";
+import { AsyncEnumerable, AsyncOrSync, AsyncOrSyncIterable, AsyncOrderedEnumerable } from "./asyncEnumerable";
 import { Enumerable, Grouping } from "./enumerable";
 
 // Code generator modifiers
@@ -309,11 +309,11 @@ abstract class EnumerableTemplate<T> extends AsyncEnumerable<T> {
         return min;
     }
 
-    public orderBy<TKey>(keySelector: (element: T) => TKey, comparer?: (lhs: TKey, rhs: TKey) => number): AsyncSortedEnumerable<T> {
+    public orderBy<TKey>(keySelector: (element: T) => TKey, comparer?: (lhs: TKey, rhs: TKey) => AsyncOrSync<number>): AsyncOrderedEnumerable<T> {
         if (comparer) {
-            return new AsyncSortedEnumerable(this.iterable, (lhs: T, rhs: T) => comparer(keySelector(lhs), keySelector(rhs)));
+            return new AsyncOrderedEnumerable(this.iterable, (lhs: T, rhs: T) => comparer(keySelector(lhs), keySelector(rhs)));
         } else {
-            return new AsyncSortedEnumerable(this.iterable, (lhs: T, rhs: T): number => {
+            return new AsyncOrderedEnumerable(this.iterable, (lhs: T, rhs: T) => {
                 const lKey = keySelector(lhs);
                 const rKey = keySelector(rhs);
                 if (lKey === rKey) {
@@ -324,11 +324,11 @@ abstract class EnumerableTemplate<T> extends AsyncEnumerable<T> {
         }
     }
 
-    public orderByDescending<TKey>(keySelector: (element: T) => TKey, comparer?: (lhs: TKey, rhs: TKey) => number): AsyncSortedEnumerable<T> {
+    public orderByDescending<TKey>(keySelector: (element: T) => TKey, comparer?: (lhs: TKey, rhs: TKey) => AsyncOrSync<number>): AsyncOrderedEnumerable<T> {
         if (comparer) {
-            return new AsyncSortedEnumerable(this.iterable, (lhs: T, rhs: T) => comparer(keySelector(rhs), keySelector(lhs)));
+            return new AsyncOrderedEnumerable(this.iterable, (lhs: T, rhs: T) => comparer(keySelector(rhs), keySelector(lhs)));
         } else {
-            return new AsyncSortedEnumerable(this.iterable, (lhs: T, rhs: T): number => {
+            return new AsyncOrderedEnumerable(this.iterable, (lhs: T, rhs: T) => {
                 const lKey = keySelector(lhs);
                 const rKey = keySelector(rhs);
                 if (lKey === rKey) {
@@ -594,7 +594,7 @@ abstract class EnumerableTemplate<T> extends AsyncEnumerable<T> {
     }
 }
 
-abstract class SortedEnumerableTemplate<T> extends EnumerableTemplate<T> {
+abstract class OrderedEnumerableTemplate<T> extends EnumerableTemplate<T> {
     // Placeholder
     public readonly comparer: (lhs: T, rhs: T) => AsyncOrSync<number> = 0 as any;
 
@@ -649,6 +649,56 @@ abstract class SortedEnumerableTemplate<T> extends EnumerableTemplate<T> {
                 yield secondHalfElement.value;
                 secondHalfElement = await secondHalf.next();
             }
+        }
+    }
+
+    public thenBy<TKey>(keySelector: (element: T) => TKey, comparer?: (lhs: TKey, rhs: TKey) => AsyncOrSync<number>): AsyncOrderedEnumerable<T> {
+        if (comparer) {
+            return new AsyncOrderedEnumerable(this.iterable, async (lhs: T, rhs: T) => {
+                const innerComparison = await this.comparer(lhs, rhs);
+                if (innerComparison !== 0) {
+                    return innerComparison;
+                }
+                return await comparer(keySelector(lhs), keySelector(rhs));
+            });
+        } else {
+            return new AsyncOrderedEnumerable(this.iterable, async (lhs: T, rhs: T) => {
+                const innerComparison = await this.comparer(lhs, rhs);
+                if (innerComparison !== 0) {
+                    return innerComparison;
+                }
+                const lKey = keySelector(lhs);
+                const rKey = keySelector(rhs);
+                if (lKey === rKey) {
+                    return 0;
+                }
+                return lKey < rKey ? -1 : 1;
+            });
+        }
+    }
+
+    public thenByDescending<TKey>(keySelector: (element: T) => TKey, comparer?: (lhs: TKey, rhs: TKey) => AsyncOrSync<number>): AsyncOrderedEnumerable<T> {
+        if (comparer) {
+            return new AsyncOrderedEnumerable(this.iterable, async (lhs: T, rhs: T) => {
+                const innerComparison = await this.comparer(lhs, rhs);
+                if (innerComparison !== 0) {
+                    return innerComparison;
+                }
+                return await comparer(keySelector(rhs), keySelector(lhs));
+            });
+        } else {
+            return new AsyncOrderedEnumerable(this.iterable, async (lhs: T, rhs: T) => {
+                const innerComparison = await this.comparer(lhs, rhs);
+                if (innerComparison !== 0) {
+                    return innerComparison;
+                }
+                const lKey = keySelector(lhs);
+                const rKey = keySelector(rhs);
+                if (lKey === rKey) {
+                    return 0;
+                }
+                return rKey < lKey ? -1 : 1;
+            });
         }
     }
 }

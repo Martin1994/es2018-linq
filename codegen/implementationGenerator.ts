@@ -138,7 +138,7 @@ export abstract class ImplementationGenerator {
         }
     }
 
-    protected makeModifiersPrivate(modifiers: ModifiersArray | Modifier[]): Modifier[] {
+    protected makeModifiersPrivate(modifiers: readonly Modifier[]): Modifier[] {
         return [
             TypeScript.factory.createModifier(SyntaxKind.PrivateKeyword),
             ...modifiers.filter(modifier =>
