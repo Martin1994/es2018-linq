@@ -12,6 +12,5 @@ export function from<T>(iterable: AsyncOrSyncIterable<T>): Enumerable<T> | Async
 }
 
 function isIterable<T>(iterable: AsyncOrSyncIterable<T>): iterable is Iterable<T> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return (iterable as any)[Symbol.iterator];
+    return Symbol.iterator in iterable;
 }

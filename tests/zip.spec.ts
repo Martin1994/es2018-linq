@@ -60,15 +60,27 @@ describe("LINQ", () => {
         }
     ])("Zip", ({name, input, output, that, resultSelector}) => {
         it(`${name} synchronously`, () => {
-            expect(from(input).zip(that, resultSelector).toArray()).toEqual(output);
+            if (resultSelector) {
+                expect(from(input).zip(that, resultSelector).toArray()).toEqual(output);
+            } else {
+                expect(from(input).zip(that).toArray()).toEqual(output);
+            }
         });
 
         it(`${name} asynchronously with synchronous that${resultSelector ? " with synchronous result selector" : ""}`, async () => {
-            expect(await from(input).asAsync().zip(that, resultSelector).toArray()).toEqual(output);
+            if (resultSelector) {
+                expect(await from(input).asAsync().zip(that, resultSelector).toArray()).toEqual(output);
+            } else {
+                expect(await from(input).asAsync().zip(that).toArray()).toEqual(output);
+            }
         });
 
         it(`${name} asynchronously with asynchronous that${resultSelector ? " with synchronous result selector" : ""}`, async () => {
-            expect(await from(input).asAsync().zip(from(that).asAsync(), resultSelector).toArray()).toEqual(output);
+            if (resultSelector) {
+                expect(await from(input).asAsync().zip(from(that).asAsync(), resultSelector).toArray()).toEqual(output);
+            } else {
+                expect(await from(input).asAsync().zip(from(that).asAsync()).toArray()).toEqual(output);
+            }
         });
 
         if (resultSelector) {

@@ -1,11 +1,10 @@
 import * as TypeScript from "typescript";
-import { Block, ClassDeclaration, Decorator, GetAccessorDeclaration, Identifier, MethodDeclaration, Modifier, ModifiersArray, Node, SourceFile, SyntaxKind, TransformationContext, TypeReferenceNode, Visitor } from "typescript";
+import {  ClassDeclaration, GetAccessorDeclaration, Identifier, MethodDeclaration, Modifier, ModifiersArray, Node, SourceFile, SyntaxKind, TransformationContext, TypeReferenceNode, Visitor } from "typescript";
 
 export interface GeneratableMethodDeclaration extends MethodDeclaration {
     readonly type: TypeReferenceNode & {
         typeName: Identifier;
     },
-    readonly body: Block,
     readonly modifiers: ModifiersArray;
 }
 
@@ -86,26 +85,15 @@ export abstract class ImplementationGenerator {
             throw new Error(`Implementation method ${methodName}() must not use qualified name as a return type.`);
         }
 
-        if (!implMethod.body) {
-            throw new Error(`Implementation method ${methodName}() must have a body.`);
-        }
-
         if (!implMethod.modifiers) {
             throw new Error(`Implementation method ${methodName}() must have modifiers.`);
         }
 
-        if (implMethod.decorators?.find(decorator => this.isEnumerableWrapperDecorator(decorator)) === undefined) {
-            return this.generateMethod(implMethod as GeneratableMethodDeclaration, className);
-        } else {
+        if (implMethod.type.typeName.text === "WrapWithAsyncEnumerable") {
             return this.generateMethodWithWrapper(implMethod as GeneratableMethodDeclaration, className);
+        } else {
+            return this.generateMethod(implMethod as GeneratableMethodDeclaration, className);
         }
-    }
-
-    private isEnumerableWrapperDecorator(decorator: Decorator): boolean {
-        if (TypeScript.isIdentifier(decorator.expression) && decorator.expression.text === "enumerableWrapper") {
-            return true;
-        }
-        return false;
     }
 
     protected abstract generateGetter(implMethod: GetAccessorDeclaration, className: string): Iterable<GetAccessorDeclaration>;

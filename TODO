@@ -1,8 +1,9 @@
 P0
-- Support method overriding (GroupBy and Zip really needs to be guarded)
+- Document unsupported methods and overrides
 
 P1
 - Support method extension
+- Support Lookup
 - Generate code with JSDoc
     - Performance warning for OrderBy with AsyncEnumerable and synchronous comparer
 - Optimization for SortedEnumerable

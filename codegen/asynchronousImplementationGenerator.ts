@@ -55,21 +55,26 @@ export class AsynchronousImplementationGenerator extends ImplementationGenerator
                 className,
                 implMethod.type.typeArguments
             ),
-            this.generateWrapperBody(implMethod, className)
+            implMethod.body ? this.generateWrapperBody(implMethod, className) : undefined
         );
 
-        // Implementation method
-        yield TypeScript.factory.createMethodDeclaration(
-            undefined,
-            this.makeModifiersPrivate(implMethod.modifiers),
-            implMethod.asteriskToken,
-            TypeScript.factory.createIdentifier(this.getImplMethodName(implMethod)),
-            implMethod.questionToken,
-            implMethod.typeParameters,
-            implMethod.parameters,
-            implMethod.type,
-            implMethod.body
-        );
+        if (implMethod.body) {
+            // Implementation method
+            yield TypeScript.factory.createMethodDeclaration(
+                undefined,
+                this.makeModifiersPrivate(implMethod.modifiers),
+                implMethod.asteriskToken,
+                TypeScript.factory.createIdentifier(this.getImplMethodName(implMethod)),
+                implMethod.questionToken,
+                implMethod.typeParameters,
+                implMethod.parameters,
+                TypeScript.factory.createTypeReferenceNode(
+                    "AsyncIterable",
+                    implMethod.type.typeArguments
+                ),
+                implMethod.body
+            );
+        }
     }
 
     private generateWrapperBody(implMethod: GeneratableMethodDeclaration, className: string): TypeScript.Block {

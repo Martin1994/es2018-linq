@@ -1,10 +1,27 @@
 import { AsyncEnumerable, AsyncOrSync, AsyncOrSyncIterable, AsyncOrderedEnumerable } from "./asyncEnumerable";
 import { Enumerable, Grouping } from "./enumerable";
 
-// Code generator modifiers
-function enumerableWrapper(_target: any, _propertyKey: any, _descriptor: PropertyDescriptor) {
-    // Noop
-}
+/**
+ * A placeholder for code generator.
+ *
+ * When this is used as the return type of a method, during code generation a wrapper
+ * method will be created which returns an AsyncEnumerable instead.
+ *
+ * @example
+ * // Template (this file)
+ * public async *echo(): WrapWithAsyncEnumerable<T> {
+ *     yield* this.iterable;
+ * }
+ *
+ * // Generated (asyncEnumerable.ts)
+ * public echo(): AsyncEnumerable<T> {
+ *     return new AsyncEnumerable(this.echoImpl());
+ * }
+ * private async *echoImpl(): AsyncIterable<T> {
+ *     yield* this.iterable;
+ * }
+ */
+type WrapWithAsyncEnumerable<T> = AsyncIterable<T>
 
 abstract class EnumerableTemplate<T> extends AsyncEnumerable<T> {
 
@@ -29,6 +46,8 @@ abstract class EnumerableTemplate<T> extends AsyncEnumerable<T> {
         return true;
     }
 
+    public any(): Promise<boolean>;
+    public any(predicate: (element: T) => AsyncOrSync<boolean>): Promise<boolean>;
     public async any(predicate?: (element: T) => AsyncOrSync<boolean>): Promise<boolean> {
         if (!predicate) {
             predicate = _ => true;
@@ -42,8 +61,7 @@ abstract class EnumerableTemplate<T> extends AsyncEnumerable<T> {
         return false;
     }
 
-    @enumerableWrapper
-    public async *append(element: T): AsyncIterable<T> {
+    public async *append(element: T): WrapWithAsyncEnumerable<T> {
         yield* this.iterable;
         yield element;
     }
@@ -63,12 +81,13 @@ abstract class EnumerableTemplate<T> extends AsyncEnumerable<T> {
         return sum / count;
     }
 
-    @enumerableWrapper
-    public async *concat(secondHalf: AsyncOrSyncIterable<T>): AsyncIterable<T> {
+    public async *concat(secondHalf: AsyncOrSyncIterable<T>): WrapWithAsyncEnumerable<T> {
         yield* this.iterable;
         yield* secondHalf;
     }
 
+    public contains(value: T): Promise<boolean>;
+    public contains(value: T, comparer: (lhs: T, rhs: T) => AsyncOrSync<boolean>): Promise<boolean>;
     public async contains(value: T, comparer?: (lhs: T, rhs: T) => AsyncOrSync<boolean>): Promise<boolean> {
         if (!comparer) {
             comparer = (lhs, rhs) => lhs === rhs;
@@ -82,6 +101,8 @@ abstract class EnumerableTemplate<T> extends AsyncEnumerable<T> {
         return false;
     }
 
+    public count(): Promise<number>;
+    public count(predicate: (element: T) => AsyncOrSync<boolean>): Promise<number>;
     public async count(predicate?: (element: T) => AsyncOrSync<boolean>): Promise<number> {
         if (!predicate) {
             predicate = _ => true;
@@ -96,8 +117,7 @@ abstract class EnumerableTemplate<T> extends AsyncEnumerable<T> {
         return counter;
     }
 
-    @enumerableWrapper
-    public async *defaultIfEmpty(defaultValue: T): AsyncIterable<T> {
+    public async *defaultIfEmpty(defaultValue: T): WrapWithAsyncEnumerable<T> {
         let empty = true;
         for await (const element of this.iterable) {
             empty = false;
@@ -109,8 +129,7 @@ abstract class EnumerableTemplate<T> extends AsyncEnumerable<T> {
         }
     }
 
-    @enumerableWrapper
-    public async *distinct(): AsyncIterable<T> {
+    public async *distinct(): WrapWithAsyncEnumerable<T> {
         const appeared =  new Set<T>();
         for await (const element of this.iterable) {
             if (!appeared.has(element)) {
@@ -131,8 +150,7 @@ abstract class EnumerableTemplate<T> extends AsyncEnumerable<T> {
         return undefined;
     }
 
-    @enumerableWrapper
-    public async *except(that: AsyncOrSyncIterable<T>): AsyncIterable<T> {
+    public async *except(that: AsyncOrSyncIterable<T>): WrapWithAsyncEnumerable<T> {
         const thisSet = new Set<T>();
         const thatSet = new Set<T>();
         for await (const thatElement of that) {
@@ -146,6 +164,8 @@ abstract class EnumerableTemplate<T> extends AsyncEnumerable<T> {
         }
     }
 
+    public first(): Promise<T | undefined>;
+    public first(predicate: (element: T) => AsyncOrSync<boolean>): Promise<T | undefined>;
     public async first(predicate?: (element: T) => AsyncOrSync<boolean>): Promise<T | undefined> {
         if (!predicate) {
             predicate = _ => true;
@@ -159,12 +179,26 @@ abstract class EnumerableTemplate<T> extends AsyncEnumerable<T> {
         return undefined;
     }
 
-    @enumerableWrapper
+    public groupBy<TKey>(
+        keySelector: (element: T) => AsyncOrSync<TKey>
+    ): WrapWithAsyncEnumerable<Grouping<TKey, T>>;
+
+    public groupBy<TKey, TElement>(
+        keySelector: (element: T) => AsyncOrSync<TKey>,
+        elementSelector: (element: T) => AsyncOrSync<TElement>,
+    ): WrapWithAsyncEnumerable<Grouping<TKey, TElement>>;
+
+    public groupBy<TKey, TElement, TResult>(
+        keySelector: (element: T) => AsyncOrSync<TKey>,
+        elementSelector: (element: T) => AsyncOrSync<TElement>,
+        resultSelector: (key: TKey, results: Iterable<TElement>) => AsyncOrSync<TResult>
+    ): WrapWithAsyncEnumerable<TResult>;
+
     public async *groupBy<TKey, TElement = T, TResult = Grouping<TKey, TElement>>(
         keySelector: (element: T) => AsyncOrSync<TKey>,
         elementSelector?: (element: T) => AsyncOrSync<TElement>,
         resultSelector?: (key: TKey, results: Iterable<TElement>) => AsyncOrSync<TResult>
-    ): AsyncIterable<TResult> {
+    ): WrapWithAsyncEnumerable<TResult> {
         if (!elementSelector) {
             elementSelector = element => element as any; // Should only be used when TElement is not given
         }
@@ -190,13 +224,12 @@ abstract class EnumerableTemplate<T> extends AsyncEnumerable<T> {
         }
     }
 
-    @enumerableWrapper
     public async *groupJoin<TInner, TKey, TResult>(
         inner: AsyncOrSyncIterable<TInner>,
         outerKeySelector: (element: T) => AsyncOrSync<TKey>,
         innerKeySelector: (element: TInner) => AsyncOrSync<TKey>,
         resultSelector: (outerElement: T, innerElements: Iterable<TInner>) => AsyncOrSync<TResult>
-    ): AsyncIterable<TResult> {
+    ): WrapWithAsyncEnumerable<TResult> {
         const innerMap = new Map<TKey, TInner[]>();
         for await (const innerElement of inner) {
             const key = await innerKeySelector(innerElement);
@@ -216,8 +249,7 @@ abstract class EnumerableTemplate<T> extends AsyncEnumerable<T> {
         }
     }
 
-    @enumerableWrapper
-    public async *intersect(that: AsyncOrSyncIterable<T>): AsyncIterable<T> {
+    public async *intersect(that: AsyncOrSyncIterable<T>): WrapWithAsyncEnumerable<T> {
         const thisSet = new Set<T>();
         const thatSet = new Set<T>();
         for await (const thatElement of that) {
@@ -231,13 +263,12 @@ abstract class EnumerableTemplate<T> extends AsyncEnumerable<T> {
         }
     }
 
-    @enumerableWrapper
     public async *join<TInner, TKey, TResult>(
         inner: AsyncOrSyncIterable<TInner>,
         outerKeySelector: (element: T) => AsyncOrSync<TKey>,
         innerKeySelector: (element: TInner) => AsyncOrSync<TKey>,
         resultSelector: (outerElement: T, innerElement: TInner) => AsyncOrSync<TResult>
-    ): AsyncIterable<TResult> {
+    ): WrapWithAsyncEnumerable<TResult> {
         const innerMap = new Map<TKey, TInner[]>();
         for await (const innerElement of inner) {
             const key = await innerKeySelector(innerElement);
@@ -261,6 +292,8 @@ abstract class EnumerableTemplate<T> extends AsyncEnumerable<T> {
         }
     }
 
+    public last(): Promise<T | undefined>;
+    public last(predicate: (element: T) => AsyncOrSync<boolean>): Promise<T | undefined>;
     public async last(predicate?: (element: T) => AsyncOrSync<boolean>): Promise<T | undefined> {
         if (!predicate) {
             predicate = _ => true;
@@ -309,6 +342,8 @@ abstract class EnumerableTemplate<T> extends AsyncEnumerable<T> {
         return min;
     }
 
+    public orderBy<TKey>(keySelector: (element: T) => TKey): AsyncOrderedEnumerable<T>;
+    public orderBy<TKey>(keySelector: (element: T) => TKey, comparer: (lhs: TKey, rhs: TKey) => AsyncOrSync<number>): AsyncOrderedEnumerable<T>;
     public orderBy<TKey>(keySelector: (element: T) => TKey, comparer?: (lhs: TKey, rhs: TKey) => AsyncOrSync<number>): AsyncOrderedEnumerable<T> {
         if (comparer) {
             return new AsyncOrderedEnumerable(this.iterable, (lhs: T, rhs: T) => comparer(keySelector(lhs), keySelector(rhs)));
@@ -324,6 +359,8 @@ abstract class EnumerableTemplate<T> extends AsyncEnumerable<T> {
         }
     }
 
+    public orderByDescending<TKey>(keySelector: (element: T) => TKey): AsyncOrderedEnumerable<T>;
+    public orderByDescending<TKey>(keySelector: (element: T) => TKey, comparer: (lhs: TKey, rhs: TKey) => AsyncOrSync<number>): AsyncOrderedEnumerable<T>;
     public orderByDescending<TKey>(keySelector: (element: T) => TKey, comparer?: (lhs: TKey, rhs: TKey) => AsyncOrSync<number>): AsyncOrderedEnumerable<T> {
         if (comparer) {
             return new AsyncOrderedEnumerable(this.iterable, (lhs: T, rhs: T) => comparer(keySelector(rhs), keySelector(lhs)));
@@ -339,19 +376,16 @@ abstract class EnumerableTemplate<T> extends AsyncEnumerable<T> {
         }
     }
 
-    @enumerableWrapper
-    public async *prepend(element: T): AsyncIterable<T> {
+    public async *prepend(element: T): WrapWithAsyncEnumerable<T> {
         yield element;
         yield* this.iterable;
     }
 
-    @enumerableWrapper
-    public async *reverse(): AsyncIterable<T> {
+    public async *reverse(): WrapWithAsyncEnumerable<T> {
         yield* (await this.toArray()).reverse();
     }
 
-    @enumerableWrapper
-    public async *select<TResult>(selector: (element: T, index: number) => AsyncOrSync<TResult>): AsyncIterable<TResult> {
+    public async *select<TResult>(selector: (element: T, index: number) => AsyncOrSync<TResult>): WrapWithAsyncEnumerable<TResult> {
         let i = 0;
         for await (const element of this.iterable) {
             yield selector(element, i);
@@ -359,8 +393,7 @@ abstract class EnumerableTemplate<T> extends AsyncEnumerable<T> {
         }
     }
 
-    @enumerableWrapper
-    public async *selectMany<TResult>(selector: (element: T, index: number) => AsyncOrSyncIterable<TResult>): AsyncIterable<TResult> {
+    public async *selectMany<TResult>(selector: (element: T, index: number) => AsyncOrSyncIterable<TResult>): WrapWithAsyncEnumerable<TResult> {
         let i = 0;
         for await (const element of this.iterable) {
             yield* selector(element, i);
@@ -368,6 +401,8 @@ abstract class EnumerableTemplate<T> extends AsyncEnumerable<T> {
         }
     }
 
+    public async sequenceEqual(that: AsyncOrSyncIterable<T>): Promise<boolean>;
+    public async sequenceEqual(that: AsyncOrSyncIterable<T>, comparer: (lhs: T, rhs: T) => AsyncOrSync<boolean>): Promise<boolean>;
     public async sequenceEqual(that: AsyncOrSyncIterable<T>, comparer?: (lhs: T, rhs: T) => AsyncOrSync<boolean>): Promise<boolean> {
         if (!comparer) {
             comparer = (lhs, rhs) => lhs === rhs;
@@ -394,6 +429,8 @@ abstract class EnumerableTemplate<T> extends AsyncEnumerable<T> {
         return true;
     }
 
+    public async single(): Promise<T>;
+    public async single(predicate: (element: T) => AsyncOrSync<boolean>): Promise<T>;
     public async single(predicate?: (element: T) => AsyncOrSync<boolean>): Promise<T> {
         if (!predicate) {
             predicate = _ => true;
@@ -420,8 +457,7 @@ abstract class EnumerableTemplate<T> extends AsyncEnumerable<T> {
         return result!;
     }
 
-    @enumerableWrapper
-    public async *skip(count: number): AsyncIterable<T> {
+    public async *skip(count: number): WrapWithAsyncEnumerable<T> {
         let i = 0;
         for await (const element of this.iterable) {
             if (i >= count) {
@@ -431,8 +467,7 @@ abstract class EnumerableTemplate<T> extends AsyncEnumerable<T> {
         }
     }
 
-    @enumerableWrapper
-    public async *skipLast(count: number): AsyncIterable<T> {
+    public async *skipLast(count: number): WrapWithAsyncEnumerable<T> {
         const buffer = new Array(count);
 
         let i = 0;
@@ -452,8 +487,7 @@ abstract class EnumerableTemplate<T> extends AsyncEnumerable<T> {
         }
     }
 
-    @enumerableWrapper
-    public async *skipWhile(predicate: (element: T, index: number) => AsyncOrSync<boolean>): AsyncIterable<T> {
+    public async *skipWhile(predicate: (element: T, index: number) => AsyncOrSync<boolean>): WrapWithAsyncEnumerable<T> {
         let skip = true;
         let i = 0;
         for await (const element of this.iterable) {
@@ -477,8 +511,7 @@ abstract class EnumerableTemplate<T> extends AsyncEnumerable<T> {
         return sum;
     }
 
-    @enumerableWrapper
-    public async *take(count: number): AsyncIterable<T> {
+    public async *take(count: number): WrapWithAsyncEnumerable<T> {
         let i = 0;
         for await (const element of this.iterable) {
             if (i < count) {
@@ -488,8 +521,7 @@ abstract class EnumerableTemplate<T> extends AsyncEnumerable<T> {
         }
     }
 
-    @enumerableWrapper
-    public async *takeLast(count: number): AsyncIterable<T> {
+    public async *takeLast(count: number): WrapWithAsyncEnumerable<T> {
         const buffer = new Array(count);
 
         let i = 0;
@@ -514,8 +546,7 @@ abstract class EnumerableTemplate<T> extends AsyncEnumerable<T> {
         }
     }
 
-    @enumerableWrapper
-    public async *takeWhile(predicate: (element: T, index: number) => AsyncOrSync<boolean>): AsyncIterable<T> {
+    public async *takeWhile(predicate: (element: T, index: number) => AsyncOrSync<boolean>): WrapWithAsyncEnumerable<T> {
         let i = 0;
         for await (const element of this.iterable) {
             if (await predicate(element, i)) {
@@ -548,8 +579,7 @@ abstract class EnumerableTemplate<T> extends AsyncEnumerable<T> {
         return result;
     }
 
-    @enumerableWrapper
-    public async *union(that: AsyncOrSyncIterable<T>): AsyncIterable<T> {
+    public async *union(that: AsyncOrSyncIterable<T>): WrapWithAsyncEnumerable<T> {
         const thisSet = new Set<T>();
         const thatSet = new Set<T>();
         for await (const thatElement of that) {
@@ -565,8 +595,7 @@ abstract class EnumerableTemplate<T> extends AsyncEnumerable<T> {
         yield* thatSet;
     }
 
-    @enumerableWrapper
-    public async *where(predicate: (element: T) => AsyncOrSync<boolean>): AsyncIterable<T> {
+    public async *where(predicate: (element: T) => AsyncOrSync<boolean>): WrapWithAsyncEnumerable<T> {
         for await (const element of this.iterable) {
             if (await predicate(element)) {
                 yield element;
@@ -574,8 +603,9 @@ abstract class EnumerableTemplate<T> extends AsyncEnumerable<T> {
         }
     }
 
-    @enumerableWrapper
-    public async *zip<TThat, TResult = [T, TThat]>(that: AsyncOrSyncIterable<TThat>, resultSelector?: (first: T, second: TThat) => AsyncOrSync<TResult>): AsyncIterable<TResult> {
+    public zip<TThat>(that: AsyncOrSyncIterable<TThat>): WrapWithAsyncEnumerable<[T, TThat]>;
+    public zip<TThat, TResult>(that: AsyncOrSyncIterable<TThat>, resultSelector: (first: T, second: TThat) => AsyncOrSync<TResult>): WrapWithAsyncEnumerable<TResult>;
+    public async *zip<TThat, TResult = [T, TThat]>(that: AsyncOrSyncIterable<TThat>, resultSelector?: (first: T, second: TThat) => AsyncOrSync<TResult>): WrapWithAsyncEnumerable<TResult> {
         if (!resultSelector) {
             resultSelector = (first, second) => [first, second] as any; // Should only be used when TResult is not given
         }
@@ -652,6 +682,8 @@ abstract class OrderedEnumerableTemplate<T> extends EnumerableTemplate<T> {
         }
     }
 
+    public thenBy<TKey>(keySelector: (element: T) => TKey): AsyncOrderedEnumerable<T>;
+    public thenBy<TKey>(keySelector: (element: T) => TKey, comparer: (lhs: TKey, rhs: TKey) => AsyncOrSync<number>): AsyncOrderedEnumerable<T>;
     public thenBy<TKey>(keySelector: (element: T) => TKey, comparer?: (lhs: TKey, rhs: TKey) => AsyncOrSync<number>): AsyncOrderedEnumerable<T> {
         if (comparer) {
             return new AsyncOrderedEnumerable(this.iterable, async (lhs: T, rhs: T) => {
@@ -677,6 +709,8 @@ abstract class OrderedEnumerableTemplate<T> extends EnumerableTemplate<T> {
         }
     }
 
+    public thenByDescending<TKey>(keySelector: (element: T) => TKey): AsyncOrderedEnumerable<T>;
+    public thenByDescending<TKey>(keySelector: (element: T) => TKey, comparer: (lhs: TKey, rhs: TKey) => AsyncOrSync<number>): AsyncOrderedEnumerable<T>;
     public thenByDescending<TKey>(keySelector: (element: T) => TKey, comparer?: (lhs: TKey, rhs: TKey) => AsyncOrSync<number>): AsyncOrderedEnumerable<T> {
         if (comparer) {
             return new AsyncOrderedEnumerable(this.iterable, async (lhs: T, rhs: T) => {

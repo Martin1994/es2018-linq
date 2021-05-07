@@ -11,7 +11,7 @@ describe("LINQ", () => {
         it("should be async iterable", async () => {
             const input = [0, 1, 2, 3];
             async function* generator() {
-                yield* [0, 1, 2, 3];
+                yield* input;
             }
             const output = from(generator());
 
@@ -31,7 +31,7 @@ describe("LINQ", () => {
         it("can be converted to an array asynchronously", async () => {
             const input = [0, 1, 2, 3];
             async function* generator() {
-                yield* [0, 1, 2, 3];
+                yield* input;
             }
             const output = await from(generator()).toArray();
 

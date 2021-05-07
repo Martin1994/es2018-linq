@@ -1,6 +1,6 @@
 import { Enumerable, Grouping } from "./enumerable";
 
-export type AsyncOrSync<T> = Promise<T> | T;
+export type AsyncOrSync<T> = PromiseLike<T> | T;
 export type AsyncOrSyncIterable<T> = AsyncIterable<T> | Iterable<T>;
 
 async function* emptyGenerator() {

@@ -38,7 +38,7 @@ export class SynchronousImplementationGenerator extends ImplementationGenerator 
             implMethod.typeParameters,
             this.convertParameters(implMethod.parameters),
             this.convertReturnType(implMethod.type),
-            this.convertMethodBody(implMethod.body)
+            implMethod.body ? this.convertMethodBody(implMethod.body) : undefined
         );
     }
 
@@ -61,21 +61,23 @@ export class SynchronousImplementationGenerator extends ImplementationGenerator 
                 className,
                 implMethod.type.typeArguments
             ),
-            this.generateWrapperBody(implMethod, className)
+            implMethod.body ? this.generateWrapperBody(implMethod, className) : undefined
         );
 
-        // Implementation method
-        yield TypeScript.factory.createMethodDeclaration(
-            undefined,
-            this.makeModifiersPrivate(implMethod.modifiers?.filter(modifier => modifier.kind !== SyntaxKind.AsyncKeyword)),
-            implMethod.asteriskToken,
-            TypeScript.factory.createIdentifier(this.getImplMethodName(implMethod)),
-            implMethod.questionToken,
-            implMethod.typeParameters,
-            parameters,
-            this.convertReturnType(implMethod.type),
-            this.convertMethodBody(implMethod.body)
-        );
+        if (implMethod.body) {
+            // Implementation method
+            yield TypeScript.factory.createMethodDeclaration(
+                undefined,
+                this.makeModifiersPrivate(implMethod.modifiers?.filter(modifier => modifier.kind !== SyntaxKind.AsyncKeyword)),
+                implMethod.asteriskToken,
+                TypeScript.factory.createIdentifier(this.getImplMethodName(implMethod)),
+                implMethod.questionToken,
+                implMethod.typeParameters,
+                parameters,
+                this.convertReturnType(implMethod.type),
+                this.convertMethodBody(implMethod.body)
+            );
+        }
     }
 
     private convertParameters(parameters: ReadonlyArray<ParameterDeclaration>): ParameterDeclaration[] {
@@ -115,16 +117,10 @@ export class SynchronousImplementationGenerator extends ImplementationGenerator 
                 return type.typeArguments[0];
 
             case "AsyncIterable":
+            case "WrapWithAsyncEnumerable":
                 return TypeScript.factory.updateTypeReferenceNode(
                     type,
                     TypeScript.factory.createIdentifier("Iterable"),
-                    type.typeArguments
-                );
-
-            case "AsyncIterator":
-                return TypeScript.factory.updateTypeReferenceNode(
-                    type,
-                    TypeScript.factory.createIdentifier("Iterator"),
                     type.typeArguments
                 );
 

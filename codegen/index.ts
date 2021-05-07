@@ -8,9 +8,9 @@ import { SynchronousImplementationGenerator } from "./synchronousImplementationG
 const TEMPLATE_SOURCE_BASE = path.join(__dirname, "..", "template");
 const GENERATED_SOURCE_BASE = path.join(__dirname, "..", "src");
 
-const GENERATED_HEADER = `/**************************************
- *    GENERATED FILE. DO NOT EDIT!    *
- **************************************/
+const GENERATED_HEADER = `//***********************************//
+//    GENERATED FILE. DO NOT EDIT!   //
+//***********************************//
 
 `;
 
