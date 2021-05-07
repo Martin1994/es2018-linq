@@ -12,10 +12,10 @@ There are still some missing or slightly different APIs from this port comparing
 
 Since this library is a ES2018 port of LINQ from .NET, please refer to [System.Linq.Enumerable API documentation](https://docs.microsoft.com/en-us/dotnet/api/system.linq.enumerable) as a detailed API reference.
 
-### Starting using LINQ
+### Start using LINQ
 
 ```javascript
-import { from } from "es-linq"; // Note: note published to NPM yet!
+import { from } from "es-linq"; // Note: hasn't published to NPM yet!
 
 console.log(
     from([-1, 0, 1, 2])
@@ -27,31 +27,46 @@ console.log(
 // Output: [2, 4]
 ```
 
-### Create LINQ object from an iterable
+### Create an Enumerable from an Iterable
 
 ```javascript
 const myIterable = ["some", "value"];
 const enumerable = from(myIterable);
-
-async function* myAsyncGenerator() {
-    yield await asyncOperationA();
-    yield await asyncOperationB();
-}
-const asyncEnumerable = from(myAsyncGenerator());
 ```
 
-### Iterate with a LINQ object
+### Create an AsyncEnumerable from an AsyncIterable
+
+```javascript
+const myIterable = ["some", "value"];
+const enumerable = from(myIterable);
+```
+
+### Convert an Enumerable (synchronous) to an AsyncEnumerable
+
+```javascript
+const enumerable = from(["John", "Smith"]);
+const asyncEnumerable = enumerable.asAsync();
+
+// Then it accepts asynchronous functions
+const allPresent = await asyncEnumerable.all(async x => await queryPresentAsync(x));
+```
+
+### Iterate with an Enumerable
 
 ```javascript
 const myInput = [0, 1, 2, 3];
 const enumerable = from(myInput).where(x => x % 2 === 0);
+
 for (const x of enumerable) {
     console.log(x);
 }
-// Output: 0, 2
+// Output:
+//     0
+//     2
 
 console.log(enumerable.toArray());
-// Output: [0, 2]
+// Output:
+//     [0, 2]
 ```
 
 ### Executions are deferred as much as possible
@@ -64,8 +79,10 @@ function* generator() {
 
 // Execution will stop when no further element is needed
 const hasOne = from(generator()).any(x => x === 1); // Will return. Won't throw
+const hasTwo = from(generator()).any(x => x === 2); // Won't return. Will throw
 
-// However some operation cannot defer any execution
+// However some operations such as distinct() cannot defer any execution
+// because they require the information of all elements
 const hasOneFromDistinctElements = from(generator()).distinct().any(); // Won't return. Will throw
 ```
 
@@ -80,16 +97,6 @@ const asyncEnumerable = from(asyncGenerator());
 // It accepts both synchronous and asynchronous functions
 console.log(await asyncEnumerable.any(x => x === 2)); // Output: true
 console.log(await asyncEnumerable.any(x => Promise.resolve(x === 2))); // Output: true
-```
-
-### Convert a synchronous LINQ object to asynchronous
-
-```javascript
-const enumerable = from(["John", "Smith"]);
-const asyncEnumerable = enumerable.asAsync();
-
-// Then it accepts asynchronous functions
-const allPresent = await asyncEnumerable.all(async x => await queryPresentAsync(x));
 ```
 
 ### Static type check for specialized methods
