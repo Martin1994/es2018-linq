@@ -1,12 +1,10 @@
-P0
-- Document unsupported methods and overrides
-
 P1
 - Support method extension
-- Support Lookup
 - Generate code with JSDoc
     - Performance warning for OrderBy with AsyncEnumerable and synchronous comparer
-- Optimization for SortedEnumerable
+- Support Lookup
+
+P2
 - More validation and exceptions
 - Support full Aggregate, GroupBy signature set
 - Support comparer for set operations

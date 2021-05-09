@@ -1,12 +1,12 @@
-# ESLINQ - LINQ for ES2018+
+# ESLINQ - LINQ for ES2018
 
 ## Abstract
 
-This library provides a set of functional programming APIs with deferred execution, copied from [LINQ](https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/concepts/linq/) from the .NET world. These predefined functional programming APIs allows you to manipulate an [Iterable<T>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols) (available since ES2015) or an [AsyncIterable<T>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/asyncIterator) (available since ES2018) in an easy and maintainable shape.
+This library provides a set of functional programming APIs with deferred execution, migrated from [LINQ](https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/concepts/linq/) from the .NET world. These predefined functional programming APIs allows you to manipulate an [Iterable<T>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols) (available since ES2015) or an [AsyncIterable<T>](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/asyncIterator) (available since ES2018) efficiently in an easy and maintainable shape.
 
-This library attempts to provide exact the same API defined in [Enumerable](https://docs.microsoft.com/en-us/dotnet/api/system.linq.enumerable) of .NET with TypeScript types. On top of that, its attempts to provide consistent API experience between synchronous and asynchronous operations by leveraging TypeScript code generation.
+This library attempts to provide exact the same API defined in [Enumerable](https://docs.microsoft.com/en-us/dotnet/api/system.linq.enumerable) of .NET with TypeScript types. On top of that, it attempts to provide consistent API experience between synchronous and asynchronous operations by leveraging TypeScript code generation.
 
-There are still some missing or slightly different APIs from this port comparing to the original .NET implementation. That is either because some nature difference between JavaScript and .NET (such as lack of `default(T)`), or to avoid complicated method overloading. If you find missing methods or overloading signatures which do not land into any of those reasons, they will be supported in a future version of this library some day.
+There are still a few missing or slightly different APIs from this port comparing to the original .NET implementation. Please refer to [Difference from .NET implementation](#difference-from-net-implementation) section for details. That is either because some nature difference between JavaScript and .NET (such as lack of `default(T)`), or to avoid complicated method overloading. If you find missing methods or overloading signatures which do not land into any of those reasons, they will be supported in a future version of this library some day.
 
 ## Usage
 
@@ -15,7 +15,7 @@ Since this library is a ES2018 port of LINQ from .NET, please refer to [System.L
 ### Start using LINQ
 
 ```javascript
-import { from } from "es-linq"; // Note: hasn't published to NPM yet!
+import { from } from "es-linq";
 
 console.log(
     from([-1, 0, 1, 2])
@@ -142,7 +142,7 @@ For example, a template implementation method, its generated asynchronous method
 ```typescript
 // Template implementation template class
 class EnumerableImplementationTemplate<T> {
-    private async *where(predicate: (element: T) => AsyncOrSync<boolean>): AsyncIterable<T> {
+    public async *where(predicate: (element: T) => AsyncOrSync<boolean>): WrapWithAsyncEnumerable<T> {
         for await (const element of this.iterable) {
             if (await predicate(element)) {
                 yield element;
@@ -154,12 +154,12 @@ class EnumerableImplementationTemplate<T> {
 // Generated asynchronous class
 class AsyncEnumerable<T> {
     // A wrapper method will be generated
-    public const(predicate: (element: T) => AsyncOrSync<boolean>): AsyncEnumerable<T> {
-        return new AsyncEnumerable(this.constImpl(predicate));
+    public where(predicate: (element: T) => AsyncOrSync<boolean>): AsyncEnumerable<T> {
+        return new AsyncEnumerable(this.whereImpl(predicate));
     }
 
     // The template method will have a prefix "Impl" in its name
-    private async *constImpl(predicate: (element: T) => AsyncOrSync<boolean>): AsyncIterable<T> {
+    private async *whereImpl(predicate: (element: T) => AsyncOrSync<boolean>): AsyncIterable<T> {
         // Method body will be kept as is
         for await (const element of this.iterable) {
             if (await predicate(element)) {
@@ -173,13 +173,13 @@ class AsyncEnumerable<T> {
 class Enumerable<T> {
     // A wrapper method will be generated
     // Asynchronous types will be removed from its signature or turned into its synchronous alternative
-    public const(predicate: (element: T) => boolean): Enumerable<T> {
-        return new Enumerable(this.constImpl(predicate));
+    public where(predicate: (element: T) => boolean): Enumerable<T> {
+        return new Enumerable(this.whereImpl(predicate));
     }
 
     // The template method will have a prefix "Impl" in its name
     // Asynchronous types will be removed from its signature or turned into its synchronous alternative
-    private *constImpl(predicate: (element: T) => boolean): Iterable<T> {
+    private *whereImpl(predicate: (element: T) => boolean): Iterable<T> {
         // Method body will *almost* be kept as is, except await keywords will be removed.
         for (const element of this.iterable) {
             if (predicate(element)) {
@@ -188,6 +188,100 @@ class Enumerable<T> {
         }
     }
 }
+```
+
+## Difference from .NET implementation
+
+Missing methods due to lack of feature in JavaScript runtime:
+```csharp
+Cast<TResult>(IEnumerable) // No runtime cast in JavaScript
+
+LongCount<TSource>(IEnumerable<TSource>) // No long in TypeScript
+LongCount<TSource>(IEnumerable<TSource>, Func<TSource,Boolean>) // No long in TypeScript
+```
+
+Missing methods to be added later:
+```csharp
+ToLookup<TSource,TKey,TElement>(IEnumerable<TSource>, Func<TSource,TKey>, Func<TSource,TElement>) // Will add later
+ToLookup<TSource,TKey>(IEnumerable<TSource>, Func<TSource,TKey>) // Will add later
+```
+
+Missing overloads due to lack of feature in JavaScript runtime:
+```csharp
+Aggregate<TSource>(IEnumerable<TSource>, Func<TSource,TSource,TSource>) // No `default(T)` in TypeScript
+
+Distinct<TSource>(IEnumerable<TSource>, IEqualityComparer<TSource>) // JavaScript Set does not support comparers
+
+Except<TSource>(IEnumerable<TSource>, IEnumerable<TSource>, IEqualityComparer<TSource>) // JavaScript Set does not support comparers
+
+GroupBy<TSource,TKey,TElement,TResult>(IEnumerable<TSource>, Func<TSource,TKey>, Func<TSource,TElement>, Func<TKey,IEnumerable<TElement>,TResult>, IEqualityComparer<TKey>) // JavaScript Map does not support comparers
+GroupBy<TSource,TKey,TElement>(IEnumerable<TSource>, Func<TSource,TKey>, Func<TSource,TElement>, IEqualityComparer<TKey>) // JavaScript Map does not support comparers
+GroupBy<TSource,TKey,TResult>(IEnumerable<TSource>, Func<TSource,TKey>, Func<TKey,IEnumerable<TSource>,TResult>, IEqualityComparer<TKey>)  // JavaScript Map does not support comparers
+GroupBy<TSource,TKey>(IEnumerable<TSource>, Func<TSource,TKey>, IEqualityComparer<TKey>) // JavaScript Map does not support comparers
+
+GroupJoin<TOuter,TInner,TKey,TResult>(IEnumerable<TOuter>, IEnumerable<TInner>, Func<TOuter,TKey>, Func<TInner,TKey>, Func<TOuter,IEnumerable<TInner>,TResult>, IEqualityComparer<TKey>)  // JavaScript Map does not support comparers
+
+Intersect<TSource>(IEnumerable<TSource>, IEnumerable<TSource>, IEqualityComparer<TSource>) // JavaScript Set does not support comparers
+
+Join<TOuter,TInner,TKey,TResult>(IEnumerable<TOuter>, IEnumerable<TInner>, Func<TOuter,TKey>, Func<TInner,TKey>, Func<TOuter,TInner,TResult>, IEqualityComparer<TKey>)  // JavaScript Set does not support comparers
+
+Max<TSource>(IEnumerable<TSource>) // No IComparable in JavaScript
+
+Min<TSource>(IEnumerable<TSource>) // No IComparable in JavaScript
+
+OfType<TResult>(IEnumerable) // No generic type check method in JavaScript
+
+ToDictionary<TSource,TKey,TElement>(IEnumerable<TSource>, Func<TSource,TKey>, Func<TSource,TElement>, IEqualityComparer<TKey>) // JavaScript Map does not support comparers
+ToDictionary<TSource,TKey>(IEnumerable<TSource>, Func<TSource,TKey>, IEqualityComparer<TKey>) // JavaScript Map does not support comparers
+
+ToHashSet<TSource>(IEnumerable<TSource>, IEqualityComparer<TSource>) // JavaScript Set does not support comparers
+
+ToList<TSource>(IEnumerable<TSource>) // Duplicate with ToArray in context of JavaScript
+
+ToLookup<TSource,TKey,TElement>(IEnumerable<TSource>, Func<TSource,TKey>, Func<TSource,TElement>, IEqualityComparer<TKey>) // JavaScript Map does not support comparers
+ToLookup<TSource,TKey>(IEnumerable<TSource>, Func<TSource,TKey>, IEqualityComparer<TKey>) // JavaScript Map does not support comparers
+
+Union<TSource>(IEnumerable<TSource>, IEnumerable<TSource>, IEqualityComparer<TSource>) // JavaScript Set does not support comparers
+```
+
+Missing overloads whose overload signature is too complicated to implement in JavaScript with other overloads:
+```csharp
+Aggregate<TSource,TAccumulate,TResult>(IEnumerable<TSource>, TAccumulate, Func<TAccumulate,TSource,TAccumulate>, Func<TAccumulate,TResult>)
+
+Average<TSource>(IEnumerable<TSource>, Func<TSource,TNumber>)
+
+GroupBy<TSource,TKey,TResult>(IEnumerable<TSource>, Func<TSource,TKey>, Func<TKey,IEnumerable<TSource>,TResult>)
+
+Max<TSource>(IEnumerable<TSource>, Func<TSource,TNumber>)
+
+Min<TSource>(IEnumerable<TSource>, Func<TSource,TNumber>)
+
+Sum<TSource>(IEnumerable<TSource>, Func<TSource,TNumber>)
+
+```
+
+
+Methods and overloads who returns `undefined` instead of `default(T)`
+```csharp
+DefaultIfEmpty<TSource>(IEnumerable<TSource>) // Use undefinedIfEmpty instead
+
+ElementAtOrDefault<TSource>(IEnumerable<TSource>, Int32) // Use ElementAtOrUndefined instead
+
+FirstOrDefault<TSource>(IEnumerable<TSource>) // Use FirstOrUndefined instead
+FirstOrDefault<TSource>(IEnumerable<TSource>, Func<TSource,Boolean>) // Use FirstOrUndefined instead
+
+LastOrDefault<TSource>(IEnumerable<TSource>) // Use LastOrUndefined instead
+LastOrDefault<TSource>(IEnumerable<TSource>, Func<TSource,Boolean>) // Use LastOrUndefined instead
+
+SingleOrDefault<TSource>(IEnumerable<TSource>, Func<TSource,Boolean>) // Use SingleOrUndefined instead
+```
+
+Renamed methods:
+```csharp
+ToDictionary<TSource,TKey,TElement>(IEnumerable<TSource>, Func<TSource,TKey>, Func<TSource,TElement>) // Use toMap instead
+ToDictionary<TSource,TKey>(IEnumerable<TSource>, Func<TSource,TKey>) // Use toMap instead
+
+ToHashSet<TSource>(IEnumerable<TSource>) // Use toSet instead
 ```
 
 ## Prior art
