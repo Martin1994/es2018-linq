@@ -393,10 +393,28 @@ abstract class EnumerableTemplate<T> extends AsyncEnumerable<T> {
         }
     }
 
-    public async *selectMany<TResult>(selector: (element: T, index: number) => AsyncOrSyncIterable<TResult>): WrapWithAsyncEnumerable<TResult> {
+    public selectMany<TResult>(
+        selector: (element: T, index: number) => AsyncOrSyncIterable<TResult>
+    ): WrapWithAsyncEnumerable<TResult>;
+
+    public selectMany<TCollection, TResult>(
+        collectionSelector: (element: T, index: number) => AsyncOrSyncIterable<TCollection>,
+        resultSelector: (element: T, collectionElement: TCollection) => AsyncOrSync<TResult>
+    ): WrapWithAsyncEnumerable<TResult>;
+
+    public async *selectMany<TCollection, TResult = TCollection>(
+        collectionSelector: (element: T, index: number) => AsyncOrSyncIterable<TCollection>,
+        resultSelector?: (element: T, collectionElement: TCollection) => AsyncOrSync<TResult>
+    ): WrapWithAsyncEnumerable<TResult> {
+        if (!resultSelector) {
+            resultSelector = (_, x) => x as any; // Should only be used when resultSelector is not given
+        }
+
         let i = 0;
         for await (const element of this.iterable) {
-            yield* selector(element, i);
+            for await (const selected of collectionSelector(element, i)) {
+                yield resultSelector(element, selected);
+            }
             i++;
         }
     }
