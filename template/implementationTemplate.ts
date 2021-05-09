@@ -129,6 +129,18 @@ abstract class EnumerableTemplate<T> extends AsyncEnumerable<T> {
         }
     }
 
+    public async *undefinedIfEmpty(): WrapWithAsyncEnumerable<T | undefined> {
+        let empty = true;
+        for await (const element of this.iterable) {
+            empty = false;
+            yield element;
+        }
+
+        if (empty) {
+            yield undefined;
+        }
+    }
+
     public async *distinct(): WrapWithAsyncEnumerable<T> {
         const appeared =  new Set<T>();
         for await (const element of this.iterable) {
@@ -140,6 +152,17 @@ abstract class EnumerableTemplate<T> extends AsyncEnumerable<T> {
     }
 
     public async elementAt(index: number): Promise<T | undefined> {
+        let i = 0;
+        for await (const element of this.iterable) {
+            if (i === index) {
+                return element;
+            }
+            i++;
+        }
+        throw new Error("Out of range.");
+    }
+
+    public async elementAtOrUndefined(index: number): Promise<T | undefined> {
         let i = 0;
         for await (const element of this.iterable) {
             if (i === index) {
@@ -164,9 +187,24 @@ abstract class EnumerableTemplate<T> extends AsyncEnumerable<T> {
         }
     }
 
-    public first(): Promise<T | undefined>;
-    public first(predicate: (element: T) => AsyncOrSync<boolean>): Promise<T | undefined>;
-    public async first(predicate?: (element: T) => AsyncOrSync<boolean>): Promise<T | undefined> {
+    public first(): Promise<T>;
+    public first(predicate: (element: T) => AsyncOrSync<boolean>): Promise<T>;
+    public async first(predicate?: (element: T) => AsyncOrSync<boolean>): Promise<T> {
+        if (!predicate) {
+            predicate = _ => true;
+        }
+
+        for await (const element of this.iterable) {
+            if (await predicate(element)) {
+                return element;
+            }
+        }
+        throw new Error("No element is found.");
+    }
+
+    public firstOrUndefined(): Promise<T | undefined>;
+    public firstOrUndefined(predicate: (element: T) => AsyncOrSync<boolean>): Promise<T | undefined>;
+    public async firstOrUndefined(predicate?: (element: T) => AsyncOrSync<boolean>): Promise<T | undefined> {
         if (!predicate) {
             predicate = _ => true;
         }
@@ -292,9 +330,31 @@ abstract class EnumerableTemplate<T> extends AsyncEnumerable<T> {
         }
     }
 
-    public last(): Promise<T | undefined>;
-    public last(predicate: (element: T) => AsyncOrSync<boolean>): Promise<T | undefined>;
-    public async last(predicate?: (element: T) => AsyncOrSync<boolean>): Promise<T | undefined> {
+    public last(): Promise<T>;
+    public last(predicate: (element: T) => AsyncOrSync<boolean>): Promise<T>;
+    public async last(predicate?: (element: T) => AsyncOrSync<boolean>): Promise<T> {
+        if (!predicate) {
+            predicate = _ => true;
+        }
+
+        let found = false;
+        let last: T | undefined = undefined;
+        for await (const element of this.iterable) {
+            if (await predicate(element)) {
+                last = element;
+                found = true;
+            }
+        }
+        if (found) {
+            return last!;
+        } else {
+            throw new Error("No element is found.");
+        }
+    }
+
+    public lastOrUndefined(): Promise<T | undefined>;
+    public lastOrUndefined(predicate: (element: T) => AsyncOrSync<boolean>): Promise<T | undefined>;
+    public async lastOrUndefined(predicate?: (element: T) => AsyncOrSync<boolean>): Promise<T | undefined> {
         if (!predicate) {
             predicate = _ => true;
         }
@@ -473,6 +533,30 @@ abstract class EnumerableTemplate<T> extends AsyncEnumerable<T> {
         }
 
         return result!;
+    }
+
+    public async singleOrUndefined(): Promise<T | undefined>;
+    public async singleOrUndefined(predicate: (element: T) => AsyncOrSync<boolean>): Promise<T | undefined>;
+    public async singleOrUndefined(predicate?: (element: T) => AsyncOrSync<boolean>): Promise<T | undefined> {
+        if (!predicate) {
+            predicate = _ => true;
+        }
+
+        let found: boolean = false;
+        let result: T | undefined = undefined;
+
+        for await (const element of this.iterable) {
+            if (await predicate(element)) {
+                if (found) {
+                    throw new Error("More than one element is found.");
+                }
+
+                found = true;
+                result = element;
+            }
+        }
+
+        return result;
     }
 
     public async *skip(count: number): WrapWithAsyncEnumerable<T> {

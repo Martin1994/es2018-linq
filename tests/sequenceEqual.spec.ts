@@ -103,15 +103,15 @@ describe("LINQ", () => {
         }
     ])("SequenceEqual", ({name, input, output, that, comparer}) => {
         it(`${name} synchronously`, () => {
-            expect(from(input).sequenceEqual(that, comparer)).toEqual(output);
+            expect(from(input).sequenceEqual(that, comparer!)).toEqual(output);
         });
 
         it(`${name} asynchronously with synchronous that${comparer ? " with synchronous comparer" : ""}`, async () => {
-            expect(await from(input).asAsync().sequenceEqual(that, comparer)).toEqual(output);
+            expect(await from(input).asAsync().sequenceEqual(that, comparer!)).toEqual(output);
         });
 
         it(`${name} asynchronously with asynchronous that${comparer ? " with synchronous comparer" : ""}`, async () => {
-            expect(await from(input).asAsync().sequenceEqual(from(that).asAsync(), comparer)).toEqual(output);
+            expect(await from(input).asAsync().sequenceEqual(from(that).asAsync(), comparer!)).toEqual(output);
         });
 
         if (comparer) {

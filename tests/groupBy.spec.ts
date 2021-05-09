@@ -65,15 +65,15 @@ describe("LINQ", () => {
         };
 
         it(`${name} synchronously`, () => {
-            expect(from(input).groupBy(keySelector, elementSelector, resultSelector).toArray().map(mapper)).toEqual(output);
+            expect(from(input).groupBy(keySelector, elementSelector!, resultSelector!).toArray().map(mapper)).toEqual(output);
         });
 
         it(`${name} asynchronously with synchronous selectors`, async () => {
-            expect((await from(input).asAsync().groupBy(keySelector, elementSelector, resultSelector).toArray()).map(mapper)).toEqual(output);
+            expect((await from(input).asAsync().groupBy(keySelector, elementSelector!, resultSelector!).toArray()).map(mapper)).toEqual(output);
         });
 
         it(`${name} asynchronously with asynchronous selectors`, async () => {
-            expect((await from(input).asAsync().groupBy(asyncKeySelector, asyncElementSelector, asyncResultSelector).toArray()).map(mapper)).toEqual(output);
+            expect((await from(input).asAsync().groupBy(asyncKeySelector, asyncElementSelector!, asyncResultSelector!).toArray()).map(mapper)).toEqual(output);
         });
     });
 });

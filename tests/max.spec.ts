@@ -1,4 +1,5 @@
 import { from } from "../src";
+import { validate, validateSync } from "./utils/validate";
 
 interface TestCase {
     readonly name: string;
@@ -24,26 +25,12 @@ describe("LINQ", () => {
             output: new Error("Source contains no elements.")
         }
     ])("Max", ({name, input, output}) => {
-        async function validate(action: () => Promise<any>) {
-            if (output instanceof Error) {
-                await expect(action()).rejects.toThrow(output);
-            } else {
-                await expect(action()).resolves.toEqual(output);
-            }
-        }
-
         it(`${name} synchronously`, async () => {
-            await validate((): Promise<any> => {
-                try {
-                    return Promise.resolve(from(input).max());
-                } catch (err) {
-                    return Promise.reject(err);
-                }
-            });
+            await validateSync(() =>  from(input).max(), output);
         });
 
         it(`${name} asynchronously`, async () => {
-            await validate(() => from(input).asAsync().max());
+            await validate(() => from(input).asAsync().max(), output);
         });
     });
 });

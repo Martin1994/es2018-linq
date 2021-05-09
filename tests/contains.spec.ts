@@ -45,11 +45,11 @@ describe("LINQ", () => {
         }
     ])("Contains", ({name, input, output, value, comparer}) => {
         it(`${name} synchronously`, () => {
-            expect(from(input).contains(value, comparer)).toEqual(output);
+            expect(from(input).contains(value, comparer!)).toEqual(output);
         });
 
         it(`${name} asynchronously${comparer ? "with synchronous comparer" : ""}`, async () => {
-            expect(await from(input).asAsync().contains(value, comparer)).toEqual(output);
+            expect(await from(input).asAsync().contains(value, comparer!)).toEqual(output);
         });
 
         if (comparer) {

@@ -47,15 +47,15 @@ describe("LINQ", () => {
 
     describe.each<TestCase>(testCases)("ThenBy", ({name, input, output, descendingOutput, keySelector, comparer, thenKeySelector, thenComparer}) => {
         it(`${name} synchronously with OrderBy`, () => {
-            expect(from(input).orderBy(keySelector, comparer).thenBy(thenKeySelector, thenComparer).toArray()).toEqual(output);
+            expect(from(input).orderBy(keySelector, comparer!).thenBy(thenKeySelector, thenComparer!).toArray()).toEqual(output);
         });
 
         it(`${name} synchronously with OrderByDescending`, () => {
-            expect(from(input).orderByDescending(keySelector, comparer).thenBy(thenKeySelector, thenComparer).toArray()).toEqual(descendingOutput.slice().reverse());
+            expect(from(input).orderByDescending(keySelector, comparer!).thenBy(thenKeySelector, thenComparer!).toArray()).toEqual(descendingOutput.slice().reverse());
         });
 
         it(`${name} asynchronously${comparer && thenComparer ? "with synchronous comparer" : ""}`, async () => {
-            expect(await from(input).asAsync().orderBy(keySelector, comparer).thenBy(thenKeySelector, thenComparer).toArray()).toEqual(output);
+            expect(await from(input).asAsync().orderBy(keySelector, comparer!).thenBy(thenKeySelector, thenComparer!).toArray()).toEqual(output);
         });
 
         if (comparer && thenComparer) {
@@ -67,15 +67,15 @@ describe("LINQ", () => {
 
     describe.each<TestCase>(testCases)("ThenByDescending", ({name, input, output, descendingOutput, keySelector, comparer, thenKeySelector, thenComparer}) => {
         it(`${name} synchronously with OrderBy`, () => {
-            expect(from(input).orderBy(keySelector, comparer).thenByDescending(thenKeySelector, thenComparer).toArray()).toEqual(descendingOutput);
+            expect(from(input).orderBy(keySelector, comparer!).thenByDescending(thenKeySelector, thenComparer!).toArray()).toEqual(descendingOutput);
         });
 
         it(`${name} synchronously with OrderByDescending`, () => {
-            expect(from(input).orderByDescending(keySelector, comparer).thenByDescending(thenKeySelector, thenComparer).toArray()).toEqual(output.slice().reverse());
+            expect(from(input).orderByDescending(keySelector, comparer!).thenByDescending(thenKeySelector, thenComparer!).toArray()).toEqual(output.slice().reverse());
         });
 
         it(`${name} asynchronously${comparer && thenComparer ? "with synchronous comparer" : ""}`, async () => {
-            expect(await from(input).asAsync().orderBy(keySelector, comparer).thenByDescending(thenKeySelector, thenComparer).toArray()).toEqual(descendingOutput);
+            expect(await from(input).asAsync().orderBy(keySelector, comparer!).thenByDescending(thenKeySelector, thenComparer!).toArray()).toEqual(descendingOutput);
         });
 
         if (comparer && thenComparer) {

@@ -39,11 +39,11 @@ describe("LINQ", () => {
         }
     ])("Any", ({name, input, output, predicate}) => {
         it(`${name} synchronously`, () => {
-            expect(from(input).any(predicate)).toEqual(output);
+            expect(from(input).any(predicate!)).toEqual(output);
         });
 
         it(`${name} asynchronously${predicate ? "with synchronous accumulator" : ""}`, async () => {
-            expect(await from(input).asAsync().any(predicate)).toEqual(output);
+            expect(await from(input).asAsync().any(predicate!)).toEqual(output);
         });
 
         if (predicate) {

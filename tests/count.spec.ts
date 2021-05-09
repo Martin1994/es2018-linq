@@ -33,11 +33,11 @@ describe("LINQ", () => {
         }
     ])("Count", ({name, input, output, predicate}) => {
         it(`${name} synchronously`, () => {
-            expect(from(input).count(predicate)).toEqual(output);
+            expect(from(input).count(predicate!)).toEqual(output);
         });
 
         it(`${name} asynchronously${predicate ? "with synchronous predicate" : ""}`, async () => {
-            expect(await from(input).asAsync().count(predicate)).toEqual(output);
+            expect(await from(input).asAsync().count(predicate!)).toEqual(output);
         });
 
         if (predicate) {

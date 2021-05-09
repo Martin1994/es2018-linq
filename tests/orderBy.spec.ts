@@ -58,21 +58,21 @@ describe("LINQ", () => {
 
     describe.each<TestCase>(testCases)("OrderBy", ({name, input, output, keySelector, comparer}) => {
         it(`${name} synchronously`, () => {
-            expect(from(input).orderBy(keySelector, comparer).toArray()).toEqual(output);
+            expect(from(input).orderBy(keySelector, comparer!).toArray()).toEqual(output);
         });
 
         it(`${name} asynchronously`, async () => {
-            expect(await from(input).asAsync().orderBy(keySelector, comparer).toArray()).toEqual(output);
+            expect(await from(input).asAsync().orderBy(keySelector, comparer!).toArray()).toEqual(output);
         });
     });
 
     describe.each<TestCase>(testCases)("OrderByDescending", ({name, input, output, keySelector, comparer}) => {
         it(`${name} synchronously`, () => {
-            expect(from(input).orderByDescending(keySelector, comparer).toArray()).toEqual([...output].reverse());
+            expect(from(input).orderByDescending(keySelector, comparer!).toArray()).toEqual([...output].reverse());
         });
 
         it(`${name} asynchronously`, async () => {
-            expect(await from(input).asAsync().orderByDescending(keySelector, comparer).toArray()).toEqual([...output].reverse());
+            expect(await from(input).asAsync().orderByDescending(keySelector, comparer!).toArray()).toEqual([...output].reverse());
         });
     });
 });
