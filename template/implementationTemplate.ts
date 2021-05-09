@@ -661,11 +661,17 @@ abstract class EnumerableTemplate<T> extends AsyncEnumerable<T> {
         }
     }
 
-    public async toMap<TKey>(keySelector: (element: T) => AsyncOrSync<TKey>): Promise<Map<TKey, T>> {
-        const result = new Map<TKey, T>();
+    public async toMap<TKey>(keySelector: (element: T) => AsyncOrSync<TKey>): Promise<Map<TKey, T>>;
+    public async toMap<TKey, TElement>(keySelector: (element: T) => AsyncOrSync<TKey>, elementSelector: (element: T) => AsyncOrSync<TElement>): Promise<Map<TKey, TElement>>;
+    public async toMap<TKey, TElement = T>(keySelector: (element: T) => AsyncOrSync<TKey>, elementSelector?: (element: T) => AsyncOrSync<TElement>): Promise<Map<TKey, TElement>> {
+        if (!elementSelector) {
+            elementSelector = x => x as any; // Should only be used when TElement is not given
+        }
+
+        const result = new Map<TKey, TElement>();
 
         for await (const element of this.iterable) {
-            result.set(await keySelector(element), element);
+            result.set(await keySelector(element), await elementSelector(element));
         }
 
         return result;
