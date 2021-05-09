@@ -1,5 +1,4 @@
 P1
-- Support method extension
 - Generate code with JSDoc
     - Performance warning for OrderBy with AsyncEnumerable and synchronous comparer
 - Support Lookup

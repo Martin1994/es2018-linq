@@ -1,4 +1,4 @@
-# ESLINQ - LINQ for ES2018
+# ES2018-LINQ - LINQ for ES2018
 
 ## Abstract
 
@@ -107,6 +107,40 @@ from([0, 1, 2]).sum();
 
 // However cannot call sum on a string iterable
 from(["string", "iterable"]).sum(); // Type error. Won't compile.
+```
+
+## Extend methods
+
+A normal [module argumentation](https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation) works.
+
+### Example: partition
+
+```typescript
+// ./partition.ts
+import { Enumerable } from "es2018-linq/lib/enumerable";
+
+declare module "es2018-linq" {
+    interface Enumerable<T> {
+        partition<T>(this: Enumerable<T>, predicate: (element: T) => boolean): [Enumerable<T>, Enumerable<T>];
+    }
+}
+
+Enumerable.prototype.partition = function<T>(this: Enumerable<T>, predicate: (element: T) => boolean): [Enumerable<T>, Enumerable<T>] {
+    return [this.where(predicate), this.where(element => !predicate(element))];
+}
+```
+
+```typescript
+// ./index.ts
+import { from } from "es2018-linq";
+import "./partition";
+
+console.log(from([0, 1, 2, 3]).partition(x => x % 2 === 0).map(e => e.toArray()));
+// Output:
+//     [
+//         [0, 2],
+//         [1, 3],
+//     ]
 ```
 
 ## Development guide
