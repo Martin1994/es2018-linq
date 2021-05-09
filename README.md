@@ -15,7 +15,7 @@ Since this library is a ES2018 port of LINQ from .NET, please refer to [System.L
 ### Start using LINQ
 
 ```javascript
-import { from } from "es-linq";
+import { from } from "es2018-linq";
 
 console.log(
     from([-1, 0, 1, 2])

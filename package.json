@@ -1,7 +1,7 @@
 {
-    "name": "es-linq",
+    "name": "es2018-linq",
     "version": "1.0.0",
-    "description": "LINQ for ES2018+",
+    "description": "LINQ for ES2018",
     "author": "Martin Chloride <i@martincl2.me>",
     "keywords": [
         "LINQ",
