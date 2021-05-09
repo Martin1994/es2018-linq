@@ -703,11 +703,13 @@ abstract class EnumerableTemplate<T> extends AsyncEnumerable<T> {
         yield* thatSet;
     }
 
-    public async *where(predicate: (element: T) => AsyncOrSync<boolean>): WrapWithAsyncEnumerable<T> {
+    public async *where(predicate: (element: T, index: number) => AsyncOrSync<boolean>): WrapWithAsyncEnumerable<T> {
+        let i = 0;
         for await (const element of this.iterable) {
-            if (await predicate(element)) {
+            if (await predicate(element, i)) {
                 yield element;
             }
+            i++;
         }
     }
 
